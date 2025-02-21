@@ -9,7 +9,9 @@ MAX_SPEED = 30
 MAX_TURN_RATIO = 0.2
 FEEDER_RADIUS = 5
 FOOD_SENSOR_RADIUS = 40
+FOOD_SENSOR_RADIUS_SQUARED = math.pow(FOOD_SENSOR_RADIUS, 2)
 DANGER_SENSOR_RADIUS = 100
+DANGER_SENSOR_RADIUS_SQUARED = math.pow(DANGER_SENSOR_RADIUS, 2)
 NUM_SENSORS = 16
 
 class Feeder:
@@ -58,12 +60,30 @@ class Feeder:
                  color=(0.0, 0.0, 0.0),
                  thickness=1)
 
-    def detect(self, loc: Tuple[float, float]|List[float]):
+    def clear_sensors(self):
+        self.food_sensors = [0.0 for _ in range(NUM_SENSORS)]
+        self.danger_sensors = [0.0 for _ in range(NUM_SENSORS)]
+
+    def detect(self, loc: Tuple[float, float] | List[float], isDanger=False):
+        threshold = FOOD_SENSOR_RADIUS
+        threshold_squared = FOOD_SENSOR_RADIUS_SQUARED
+        if isDanger:
+            threshold = DANGER_SENSOR_RADIUS
+            threshold_squared = DANGER_SENSOR_RADIUS_SQUARED
+        distance_squared = math.pow(self.position[0] - loc[0], 2) + math.pow(self.position[1] - loc[1], 2)
+        if distance_squared > threshold_squared:
+            return
+
+        distance = math.sqrt(distance_squared)
+        proximity = 1.0 - distance/threshold
+
         theta = math.atan2(loc[1]-self.position[1], loc[0]-self.position[0])
-        diff = theta - self.orientation
-        diff = (diff + math.pi) % (2*math.pi)
-        self.food_sensors[int((diff / (2 * math.pi)) * NUM_SENSORS + 0.5) % NUM_SENSORS] = 1
-        # print(f"{theta=}\t{self.orientation=}\t{diff=}\t{self.food_sensors}")
+        offset_diff = (theta - self.orientation + math.pi) % (2*math.pi)
+        index = int((offset_diff / (2 * math.pi)) * NUM_SENSORS + 0.5) % NUM_SENSORS
+        if isDanger:
+            self.danger_sensors[index] = max(self.danger_sensors[index], proximity)
+        else:
+            self.food_sensors[index] = max(self.food_sensors[index],proximity)
 
     def animation_step(self, delta_t:float):
         self.speed = 0
