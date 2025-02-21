@@ -16,6 +16,7 @@ class Feeder:
 
     def __init__(self, genes: Optional[Tuple[float, ...]] = None):
         self.position: List[float] = [random.randint(0, 800), random.randint(0, 800)]
+        print(f"{self.position=}")
         self.orientation = random.random()*2*math.pi-math.pi
         self.speed = 0.0
         self.turn_ratio = 0.0
@@ -62,7 +63,7 @@ class Feeder:
         diff = theta - self.orientation
         diff = (diff + math.pi) % (2*math.pi)
         self.food_sensors[int((diff / (2 * math.pi)) * NUM_SENSORS + 0.5) % NUM_SENSORS] = 1
-        print(f"{theta=}\t{self.orientation=}\t{diff=}\t{self.food_sensors}")
+        # print(f"{theta=}\t{self.orientation=}\t{diff=}\t{self.food_sensors}")
 
     def animation_step(self, delta_t:float):
         self.speed = 0
@@ -76,8 +77,8 @@ class Feeder:
         self.turn_ratio = max(MAX_TURN_RATIO, min(-MAX_TURN_RATIO, self.turn_ratio))
 
         self.orientation += self.turn_ratio*delta_t/2
-        self.position = [self.position[0]+self.speed*delta_t*math.cos(self.orientation)]
-        self.position = [self.position[1] + self.speed * delta_t * math.sin(self.orientation)]
+        self.position = [self.position[0]+self.speed*delta_t*math.cos(self.orientation),
+                         self.position[1]+self.speed * delta_t * math.sin(self.orientation)]
         self.orientation += self.turn_ratio * delta_t / 2
 
 
