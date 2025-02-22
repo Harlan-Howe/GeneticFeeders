@@ -19,7 +19,6 @@ class Feeder:
 
     def __init__(self, genes: Optional[Tuple[float, ...]] = None):
         self.position: List[float] = [random.randint(0, 800), random.randint(0, 800)]
-        print(f"{self.position=}")
         self.orientation = random.random()*2*math.pi-math.pi
         self.speed = 15.0
         self.turn_ratio = 0.0
@@ -39,6 +38,10 @@ class Feeder:
         self.is_alive = True
         self.food_level = 50
         self.age = 0.0
+        self.position: List[float] = [random.randint(0, 800), random.randint(0, 800)]
+        self.orientation = random.random() * 2 * math.pi - math.pi
+        self.speed = 15.0
+        self.turn_ratio = 0.0
 
     def die(self):
         self.is_alive = False
