@@ -26,17 +26,19 @@ class Feeder:
         self.food_sensors = [0.0 for i in range(NUM_SENSORS)]
         self.danger_sensors = [0.0 for i in range(NUM_SENSORS)]
 
-        self.color: Tuple[float, float, float] = (random.random(), random.random(), random.random())
+        self.color: Tuple[float, float, float] = (random.random() * 0.8, random.random() * 0.8 , random.random() * 0.8)
         if genes is None:
             self.genes = tuple([2*random.random()-1 for i in range(4*NUM_SENSORS)])
         else:
             self.genes = genes
         self.is_alive = True
         self.food_level = 50
+        self.age = 0.0
 
     def reset(self):
         self.is_alive = True
         self.food_level = 50
+        self.age = 0.0
 
     def die(self):
         self.is_alive = False
@@ -72,6 +74,7 @@ class Feeder:
                  pt2=front,
                  color=(0.0, 0.0, 0.0),
                  thickness=1)
+        cv2.putText(img=canvas, text=f"{self.age:3.2f}",org=(int(self.position[0]-10),int(self.position[1]-15)),fontFace=cv2.FONT_HERSHEY_PLAIN, fontScale=0.5, color=self.color)
 
     def clear_sensors(self):
         self.food_sensors = [0.0 for _ in range(NUM_SENSORS)]
@@ -106,7 +109,7 @@ class Feeder:
         if self.food_level < 0:
             self.die()
             return
-
+        self.age += delta_t
         for i in range(NUM_SENSORS):
             self.speed += (self.genes[i] * self.food_sensors[i] +
                            self.genes[i+NUM_SENSORS] * self.danger_sensors[i])
