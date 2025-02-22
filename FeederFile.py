@@ -13,6 +13,7 @@ FOOD_SENSOR_RADIUS_SQUARED = math.pow(FOOD_SENSOR_RADIUS, 2)
 DANGER_SENSOR_RADIUS = 100
 DANGER_SENSOR_RADIUS_SQUARED = math.pow(DANGER_SENSOR_RADIUS, 2)
 NUM_SENSORS = 16
+CONSUMPTION_PER_SECOND = 4
 
 class Feeder:
 
@@ -30,6 +31,16 @@ class Feeder:
             self.genes = tuple([2*random.random()-1 for i in range(4*NUM_SENSORS)])
         else:
             self.genes = genes
+        self.is_alive = True
+        self.food_level = 50
+
+    def reset(self):
+        self.is_alive = True
+        self.food_level = 50
+
+    def die(self):
+        self.is_alive = False
+
 
     def draw_self(self, canvas: np.ndarray, display_sensors=False):
         if display_sensors:
@@ -39,7 +50,7 @@ class Feeder:
                     cv2.line(img=canvas, pt1=(int(self.position[0]), int(self.position[1])),
                              pt2=(int(self.position[0] + DANGER_SENSOR_RADIUS * math.cos(angle)),
                                   int(self.position[1] + DANGER_SENSOR_RADIUS * math.sin(angle))),
-                             color=(0.5, 0.5+self.danger_sensors[i]/2, 0.5),
+                             color=(0, 0.5 +self.danger_sensors[i]/2, 0),
                              thickness=1)
                 if self.food_sensors[i]>0:
                     cv2.line(img=canvas, pt1=(int(self.position[0]), int(self.position[1])),
@@ -91,6 +102,11 @@ class Feeder:
     def animation_step(self, delta_t:float):
         # self.speed = 0
         # self.turn_ratio = 0
+        self.food_level -= CONSUMPTION_PER_SECOND*delta_t
+        if self.food_level < 0:
+            self.die()
+            return
+
         for i in range(NUM_SENSORS):
             self.speed += (self.genes[i] * self.food_sensors[i] +
                            self.genes[i+NUM_SENSORS] * self.danger_sensors[i])
