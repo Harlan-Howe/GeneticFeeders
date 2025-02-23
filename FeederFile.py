@@ -192,7 +192,8 @@ class Feeder:
                      pt2=front,
                      color=(0.0, 0.0, 0.0),
                      thickness=1)
-            cv2.putText(img=canvas, text=f"{self.age:3.2f}",
-                        org=(int(center[0] - DANGER_SENSOR_RADIUS*scale), int(center[1] - DANGER_SENSOR_RADIUS*scale)),
-                        fontFace=cv2.FONT_HERSHEY_PLAIN,
-                        fontScale=0.5, color=self.color)
+            if not self.is_alive:
+                cv2.putText(img=canvas, text=f"{self.age:3.2f}",
+                            org=(int(center[0] - DANGER_SENSOR_RADIUS*scale), int(center[1] - DANGER_SENSOR_RADIUS*scale)),
+                            fontFace=cv2.FONT_HERSHEY_PLAIN,
+                            fontScale=scale*2, color=self.color)
