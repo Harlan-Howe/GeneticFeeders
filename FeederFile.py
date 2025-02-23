@@ -128,6 +128,64 @@ class Feeder:
 
         # print(f"{self.speed=}\t{self.turn_ratio=}")
 
+    def display_attributes_at(self, canvas:np.ndarray, center:Tuple[int,int]|List[int], scale:float = 1.0):
+        angle_per_sensor = 360/NUM_SENSORS;
+        for i in range(NUM_SENSORS):
+            color_food_speed = (max(0,-self.genes[i]),0,max(0,self.genes[i]))
+            color_danger_speed = (max(0,-self.genes[i+NUM_SENSORS]),max(0,self.genes[i+NUM_SENSORS]),0)
+            color_food_turn = (max(0, -self.genes[i+2*NUM_SENSORS]), 0.25, max(0, self.genes[i+2*NUM_SENSORS]))
+            color_danger_turn = (max(0, -self.genes[i + 3* NUM_SENSORS]), max(0, self.genes[i + 3 * NUM_SENSORS]), 0.25)
 
+            cv2.ellipse(img=canvas,
+                        center=center,
+                        axes=(int(DANGER_SENSOR_RADIUS*scale),int(DANGER_SENSOR_RADIUS*scale)),
+                        angle=0,
+                        startAngle=(i-0.5)*angle_per_sensor,
+                        endAngle=(i+0.5)*angle_per_sensor,
+                        color = color_danger_turn,
+                        thickness = -1)
 
+            cv2.ellipse(img=canvas,
+                        center=center,
+                        axes=(int(DANGER_SENSOR_RADIUS*scale*.95),int(DANGER_SENSOR_RADIUS*scale*.95)),
+                        angle=0,
+                        startAngle=(i-0.25)*angle_per_sensor,
+                        endAngle=(i+0.25)*angle_per_sensor,
+                        color = color_danger_speed,
+                        thickness = -1)
 
+            cv2.ellipse(img=canvas,
+                        center=center,
+                        axes=(int(FOOD_SENSOR_RADIUS*scale),int(FOOD_SENSOR_RADIUS*scale)),
+                        angle=0,
+                        startAngle=(i-0.5)*angle_per_sensor,
+                        endAngle=(i+0.5)*angle_per_sensor,
+                        color = color_food_turn,
+                        thickness = -1)
+
+            cv2.ellipse(img=canvas,
+                        center=center,
+                        axes=(int(FOOD_SENSOR_RADIUS*scale*.90),int(FOOD_SENSOR_RADIUS*scale*.90)),
+                        angle=0,
+                        startAngle=(i-0.25)*angle_per_sensor,
+                        endAngle=(i+0.25)*angle_per_sensor,
+                        color = color_food_speed,
+                        thickness = -1)
+
+            cv2.circle(img=canvas, center=(int(self.position[0]), int(self.position[1])), radius=int(FEEDER_RADIUS * scale),
+                       color=self.color,
+                       thickness=-1)
+            front = (int(self.position[0] + scale*FEEDER_RADIUS * math.cos(self.orientation)),
+                     int(self.position[1] + scale*FEEDER_RADIUS * math.sin(self.orientation)))
+            cv2.line(img=canvas, pt1=(int(self.position[0]), int(self.position[1])),
+                     pt2=front,
+                     color=(1.0, 1.0, 1.0),
+                     thickness=3)
+
+            cv2.line(img=canvas, pt1=(int(self.position[0]), int(self.position[1])),
+                     pt2=front,
+                     color=(0.0, 0.0, 0.0),
+                     thickness=1)
+            cv2.putText(img=canvas, text=f"{self.age:3.2f}",
+                        org=(int(self.position[0] - scale*10), int(self.position[1] - scale*15)), fontFace=cv2.FONT_HERSHEY_PLAIN,
+                        fontScale=0.5*scale, color=self.color)
