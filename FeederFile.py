@@ -128,6 +128,12 @@ class Feeder:
 
         # print(f"{self.speed=}\t{self.turn_ratio=}")
 
+    def __lt__(self, other):
+        return self.age < other.age
+
+    def __eq__(self, other):
+        return self.age == other.age
+
     def display_attributes_at(self, canvas:np.ndarray, center:Tuple[int,int]|List[int], scale:float = 1.0):
         angle_per_sensor = 360/NUM_SENSORS;
         for i in range(NUM_SENSORS):
@@ -172,20 +178,21 @@ class Feeder:
                         color = color_food_speed,
                         thickness = -1)
 
-            cv2.circle(img=canvas, center=(int(self.position[0]), int(self.position[1])), radius=int(FEEDER_RADIUS * scale),
+            cv2.circle(img=canvas, center=center, radius=int(FEEDER_RADIUS * scale),
                        color=self.color,
                        thickness=-1)
-            front = (int(self.position[0] + scale*FEEDER_RADIUS * math.cos(self.orientation)),
-                     int(self.position[1] + scale*FEEDER_RADIUS * math.sin(self.orientation)))
-            cv2.line(img=canvas, pt1=(int(self.position[0]), int(self.position[1])),
+            front = (int(center[0] + scale*FEEDER_RADIUS),
+                     int(center[1]))
+            cv2.line(img=canvas, pt1=center,
                      pt2=front,
                      color=(1.0, 1.0, 1.0),
                      thickness=3)
 
-            cv2.line(img=canvas, pt1=(int(self.position[0]), int(self.position[1])),
+            cv2.line(img=canvas, pt1=center,
                      pt2=front,
                      color=(0.0, 0.0, 0.0),
                      thickness=1)
             cv2.putText(img=canvas, text=f"{self.age:3.2f}",
-                        org=(int(self.position[0] - scale*10), int(self.position[1] - scale*15)), fontFace=cv2.FONT_HERSHEY_PLAIN,
-                        fontScale=0.5*scale, color=self.color)
+                        org=(int(center[0] - DANGER_SENSOR_RADIUS*scale), int(center[1] - DANGER_SENSOR_RADIUS*scale)),
+                        fontFace=cv2.FONT_HERSHEY_PLAIN,
+                        fontScale=0.5, color=self.color)
