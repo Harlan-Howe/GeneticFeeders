@@ -129,10 +129,13 @@ class Feeder:
         # print(f"{self.speed=}\t{self.turn_ratio=}")
 
     def __lt__(self, other):
+        if self.age == other.age:
+            return self.food_level < other.food_level
         return self.age < other.age
 
     def __eq__(self, other):
-        return self.age == other.age
+
+        return self.age == other.age and self.food_level == other.food_level
 
     def display_attributes_at(self, canvas:np.ndarray, center:Tuple[int,int]|List[int], scale:float = 1.0):
         angle_per_sensor = 360/NUM_SENSORS;
