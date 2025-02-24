@@ -98,7 +98,7 @@ class GeneticAlgorithmRunner:
             if self.cycle_ongoing and self.age_of_cycle >= MAX_CYCLE_DURATION:
                 self.kill_all_feeders()
 
-            cv2.putText(img=main_canvas, text=f"Time: {self.age_of_cycle}", org = (700,775),
+            cv2.putText(img=main_canvas, text=f"Time: {self.age_of_cycle:3.2f}", org = (700,775),
                         fontFace=cv2.FONT_HERSHEY_PLAIN, fontScale=1, color = (0,0,0))
             cv2.imshow("Canvas", main_canvas)
             response = cv2.waitKey(10)
