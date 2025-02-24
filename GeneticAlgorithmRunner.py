@@ -1,5 +1,4 @@
 import math
-import random
 from datetime import datetime
 from typing import List
 
@@ -11,6 +10,8 @@ from FeederFile import Feeder, FEEDER_RADIUS
 from FoodFile import Food, FOOD_RADIUS
 
 MAX_CYCLE_DURATION = 60
+FOOD_THRESHOLD_SQUARED = math.pow(FOOD_RADIUS + FEEDER_RADIUS, 2)
+DANGER_THRESHOLD_SQUARED = math.pow(DANGERBALL_RADIUS + FEEDER_RADIUS, 2)
 
 class GeneticAlgorithmRunner:
 
@@ -29,8 +30,6 @@ class GeneticAlgorithmRunner:
 
         self.latest = datetime.now()
 
-        self.food_threshold_squared = math.pow(FOOD_RADIUS + FEEDER_RADIUS, 2)
-        self.danger_threshold_squared = math.pow(DANGERBALL_RADIUS + FEEDER_RADIUS, 2)
         self.cycle_ongoing = True
         self.age_of_cycle = 0.0
 
@@ -136,7 +135,7 @@ class GeneticAlgorithmRunner:
             for bug in self.feeder_list:
                 if bug.is_alive:
                     if math.pow(db.pos[0] - bug.position[0], 2) + math.pow(db.pos[1] - bug.position[1],
-                                                                           2) < self.danger_threshold_squared:
+                                                                           2) < DANGER_THRESHOLD_SQUARED:
                         bug.die()
 
     def check_for_eaten_food(self):
@@ -145,7 +144,7 @@ class GeneticAlgorithmRunner:
             for bug in self.feeder_list:
                 if bug.is_alive:
                     if math.pow(f.pos[0] - bug.position[0], 2) + math.pow(f.pos[1] - bug.position[1],
-                                                                          2) < self.food_threshold_squared:
+                                                                          2) < FOOD_THRESHOLD_SQUARED:
                         bug.food_level = min(100, bug.food_level + 10)
                         eaten_food_list.append(f)
         for ef in eaten_food_list:
