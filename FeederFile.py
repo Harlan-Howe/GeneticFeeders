@@ -180,14 +180,14 @@ class Feeder:
                         color = color_danger_turn,
                         thickness = -1)
 
+            cv2.circle(img=canvas, center=center, radius=int(FEEDER_RADIUS * 3.5 * scale),
+                       color=(1, 1, 1),
+                       thickness=-1)
 
-
-
-
-            cv2.circle(img=canvas, center=center, radius=int(FEEDER_RADIUS * scale),
+            cv2.circle(img=canvas, center=center, radius=int(FEEDER_RADIUS * 3 * scale),
                        color=self.color,
                        thickness=-1)
-            front = (int(center[0] + scale*FEEDER_RADIUS),
+            front = (int(center[0] + scale * 3 * FEEDER_RADIUS),
                      int(center[1]))
             cv2.line(img=canvas, pt1=center,
                      pt2=front,
@@ -198,8 +198,15 @@ class Feeder:
                      pt2=front,
                      color=(0.0, 0.0, 0.0),
                      thickness=1)
+
             if not self.is_alive:
-                cv2.putText(img=canvas, text=f"{self.age:3.2f}",
-                            org=(int(center[0] - DANGER_SENSOR_RADIUS*scale), int(center[1] - DANGER_SENSOR_RADIUS*scale)),
-                            fontFace=cv2.FONT_HERSHEY_PLAIN,
-                            fontScale=scale*2, color=self.color)
+                if self.food_level > 0:
+                    cv2.putText(img=canvas, text=f"{self.age:3.2f} + {int(self.food_level)}",
+                                org=(int(center[0] - DANGER_SENSOR_RADIUS*scale), int(center[1] - DANGER_SENSOR_RADIUS*scale)),
+                                fontFace=cv2.FONT_HERSHEY_PLAIN,
+                                fontScale=scale*2, color=self.color)
+                else:
+                    cv2.putText(img=canvas, text=f"{self.age:3.2f}",
+                                org=(int(center[0] - DANGER_SENSOR_RADIUS*scale), int(center[1] - DANGER_SENSOR_RADIUS*scale)),
+                                fontFace=cv2.FONT_HERSHEY_PLAIN,
+                                fontScale=scale*2, color=self.color)
