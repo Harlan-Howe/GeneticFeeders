@@ -19,7 +19,7 @@ class GeneticAlgorithmRunner:
         self.main_canvas = np.ones((800, 800, 3), dtype=float)
         self.stats_canvas = np.ones((600, 600, 3), dtype=float)
         cv2.imshow("stats", self.stats_canvas)
-        cv2.moveWindow("stats", 800, 0)
+        cv2.moveWindow("stats", 800, 100)
 
         self.moving_danger_list: List[DangerBall] = []
         self.all_dangers: List[DangerBall] = []

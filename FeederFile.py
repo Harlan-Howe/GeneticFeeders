@@ -140,23 +140,31 @@ class Feeder:
     def display_attributes_at(self, canvas:np.ndarray, center:Tuple[int,int]|List[int], scale:float = 1.0):
         angle_per_sensor = 360/NUM_SENSORS;
         for i in range(NUM_SENSORS):
-            color_food_speed = (max(0,-self.genes[i]),0,max(0,self.genes[i]))
-            color_danger_speed = (max(0,-self.genes[i+NUM_SENSORS]),max(0,self.genes[i+NUM_SENSORS]),0)
-            color_food_turn = (max(0, -self.genes[i+2*NUM_SENSORS]), 0.25, max(0, self.genes[i+2*NUM_SENSORS]))
-            color_danger_turn = (max(0, -self.genes[i + 3* NUM_SENSORS]), max(0, self.genes[i + 3 * NUM_SENSORS]), 0.25)
+            color_food_speed = (0, max(0, self.genes[i]), max(0, -self.genes[i]))
+            color_danger_speed = (0, max(0, self.genes[i+NUM_SENSORS]), max(0, -self.genes[i+NUM_SENSORS]))
+            color_food_turn = (0, max(0, self.genes[i+2*NUM_SENSORS]), max(0, -self.genes[i+2*NUM_SENSORS]))
+            color_danger_turn = (0, max(0, self.genes[i + 3* NUM_SENSORS]), max(0, -self.genes[i + 3 * NUM_SENSORS]))
 
             cv2.ellipse(img=canvas,
                         center=center,
-                        axes=(int(DANGER_SENSOR_RADIUS*scale),int(DANGER_SENSOR_RADIUS*scale)),
+                        axes=(int(DANGER_SENSOR_RADIUS * scale * .55), int(DANGER_SENSOR_RADIUS * scale * .55)),
                         angle=0,
-                        startAngle=(i-0.5)*angle_per_sensor,
-                        endAngle=(i+0.5)*angle_per_sensor,
-                        color = color_danger_turn,
+                        startAngle=(i - 0.45) * angle_per_sensor,
+                        endAngle=(i + 0.45) * angle_per_sensor,
+                        color=color_food_speed,
+                        thickness=-1)
+            cv2.ellipse(img=canvas,
+                        center=center,
+                        axes=(int(DANGER_SENSOR_RADIUS * scale * 0.7),int(DANGER_SENSOR_RADIUS * scale * 0.7)),
+                        angle=0,
+                        startAngle=(i-0.375)*angle_per_sensor,
+                        endAngle=(i+0.375)*angle_per_sensor,
+                        color = color_food_turn,
                         thickness = -1)
 
             cv2.ellipse(img=canvas,
                         center=center,
-                        axes=(int(DANGER_SENSOR_RADIUS*scale*.95),int(DANGER_SENSOR_RADIUS*scale*.95)),
+                        axes=(int(DANGER_SENSOR_RADIUS*scale*.85),int(DANGER_SENSOR_RADIUS*scale*.85)),
                         angle=0,
                         startAngle=(i-0.25)*angle_per_sensor,
                         endAngle=(i+0.25)*angle_per_sensor,
@@ -165,21 +173,16 @@ class Feeder:
 
             cv2.ellipse(img=canvas,
                         center=center,
-                        axes=(int(FOOD_SENSOR_RADIUS*scale),int(FOOD_SENSOR_RADIUS*scale)),
+                        axes=(int(DANGER_SENSOR_RADIUS*scale),int(DANGER_SENSOR_RADIUS*scale)),
                         angle=0,
-                        startAngle=(i-0.5)*angle_per_sensor,
-                        endAngle=(i+0.5)*angle_per_sensor,
-                        color = color_food_turn,
+                        startAngle=(i-0.125)*angle_per_sensor,
+                        endAngle=(i+0.125)*angle_per_sensor,
+                        color = color_danger_turn,
                         thickness = -1)
 
-            cv2.ellipse(img=canvas,
-                        center=center,
-                        axes=(int(FOOD_SENSOR_RADIUS*scale*.90),int(FOOD_SENSOR_RADIUS*scale*.90)),
-                        angle=0,
-                        startAngle=(i-0.25)*angle_per_sensor,
-                        endAngle=(i+0.25)*angle_per_sensor,
-                        color = color_food_speed,
-                        thickness = -1)
+
+
+
 
             cv2.circle(img=canvas, center=center, radius=int(FEEDER_RADIUS * scale),
                        color=self.color,
