@@ -92,14 +92,14 @@ class GeneticAlgorithmRunner:
             self.check_for_eaten_food()
             self.check_for_feeder_danger_collisions()
             self.draw_all_food(main_canvas)
-            self.update_stats_window()
-            self.draw_all_feeders(main_canvas)
-
             if self.cycle_ongoing and self.age_of_cycle >= MAX_CYCLE_DURATION:
                 self.kill_all_feeders()
+            self.update_stats_window()
 
-            cv2.putText(img=main_canvas, text=f"Time: {self.age_of_cycle:3.2f}", org = (700,775),
-                        fontFace=cv2.FONT_HERSHEY_PLAIN, fontScale=1, color = (0,0,0))
+            if self.cycle_ongoing:
+                cv2.putText(img=main_canvas, text=f"Time: {self.age_of_cycle:3.2f}", org = (700,775),
+                            fontFace=cv2.FONT_HERSHEY_PLAIN, fontScale=1, color = (0,0,0))
+            self.draw_all_feeders(main_canvas)
             cv2.imshow("Canvas", main_canvas)
             response = cv2.waitKey(10)
             if response != -1:
@@ -108,7 +108,7 @@ class GeneticAlgorithmRunner:
     def kill_all_feeders(self):
         for bug in self.feeder_list:
             bug.die()
-        self.cycle_ongoing = False
+
 
     def draw_all_feeders(self, main_canvas):
         live_feeders = 0
@@ -139,6 +139,7 @@ class GeneticAlgorithmRunner:
                     if math.pow(db.pos[0] - bug.position[0], 2) + math.pow(db.pos[1] - bug.position[1],
                                                                            2) < DANGER_THRESHOLD_SQUARED:
                         bug.die()
+                        bug.food_level = 0
 
     def check_for_eaten_food(self):
         eaten_food_list: List[Food] = []
