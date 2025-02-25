@@ -33,6 +33,7 @@ class Feeder:
         self.is_alive = True
         self.food_level = 50
         self.age = 0.0
+        self.death_reason = ""
 
     def reset(self):
         self.is_alive = True
@@ -42,10 +43,11 @@ class Feeder:
         self.orientation = random.random() * 2 * math.pi - math.pi
         self.speed = 15.0
         self.turn_ratio = 0.0
+        self.death_reason = ""
 
-    def die(self):
+    def die(self, reason=""):
         self.is_alive = False
-
+        self.death_reason = reason
 
     def draw_self(self, canvas: np.ndarray, display_sensors=False):
         if display_sensors:
@@ -206,7 +208,7 @@ class Feeder:
                                 fontFace=cv2.FONT_HERSHEY_PLAIN,
                                 fontScale=scale*2, color=self.color)
                 else:
-                    cv2.putText(img=canvas, text=f"{self.age:3.2f}",
+                    cv2.putText(img=canvas, text=f"{self.age:3.2f} + {self.death_reason}",
                                 org=(int(center[0] - DANGER_SENSOR_RADIUS*scale), int(center[1] - DANGER_SENSOR_RADIUS*scale)),
                                 fontFace=cv2.FONT_HERSHEY_PLAIN,
                                 fontScale=scale*2, color=self.color)
