@@ -140,6 +140,7 @@ class GeneticAlgorithmRunner:
                                                                            2) < DANGER_THRESHOLD_SQUARED:
                         bug.die()
                         bug.food_level = 0
+                        bug.death_reason = "O"
 
     def check_for_eaten_food(self):
         eaten_food_list: List[Food] = []

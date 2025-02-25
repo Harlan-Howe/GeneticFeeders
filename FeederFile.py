@@ -113,6 +113,7 @@ class Feeder:
         self.food_level -= CONSUMPTION_PER_SECOND*delta_t
         if self.food_level < 0:
             self.die()
+            self.death_reason = "E"
             return
         self.age += delta_t
         for i in range(NUM_SENSORS):
@@ -208,7 +209,7 @@ class Feeder:
                                 fontFace=cv2.FONT_HERSHEY_PLAIN,
                                 fontScale=scale*2, color=self.color)
                 else:
-                    cv2.putText(img=canvas, text=f"{self.age:3.2f} + {self.death_reason}",
+                    cv2.putText(img=canvas, text=f"{self.age:3.2f}   {self.death_reason}",
                                 org=(int(center[0] - DANGER_SENSOR_RADIUS*scale), int(center[1] - DANGER_SENSOR_RADIUS*scale)),
                                 fontFace=cv2.FONT_HERSHEY_PLAIN,
                                 fontScale=scale*2, color=self.color)
