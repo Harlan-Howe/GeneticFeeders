@@ -1,4 +1,5 @@
 import math
+import random
 from datetime import datetime
 from typing import List
 
@@ -32,6 +33,7 @@ class GeneticAlgorithmRunner:
 
         self.cycle_ongoing = True
         self.age_of_cycle = 0.0
+        self.generation_number = 0
 
     def create_dangers_and_food(self):
         self.create_moving_dangers()
@@ -182,8 +184,36 @@ class GeneticAlgorithmRunner:
             if bug.is_alive:
                 bug.clear_sensors()
 
+    def initial_setup(self):
+        load_YN = input("Do you want to load an existing generation? (Y/N) ").lower()
+        if load_YN:
+            load_filename = input("Enter the name of the file, or type 'cancel' to change your mind. ")
+            if load_filename != "cancel":
+                pass
+                #TODO write this.
+
+        self.save_filename = f"generation {random.randint(1000,9999)}"
+        print("Press 's' to save the current generation at the end of a cycle.")
+
+    def save_generation(self, filename):
+        text_to_write = f"{self.generation_number}\n"
+        for bug in self.feeder_list:
+
+            for i in range(len(bug.genes)):
+                text_to_write += (bug.genes[i])
+                if i < len(bug.genes)-1:
+                    text_to_write += "\t"
+            text_to_write += "\n"
+        try:
+            with open(filename, "w") as file:
+                file.write(text_to_write)
+            print(f"Successfully wrote to {filename}")
+        except Exception as e:
+            print(f"An error occurred: {e}")
+
 
 if __name__ == "__main__":
     gar = GeneticAlgorithmRunner()
+    gar.initial_setup()
     gar.animation_loop()
     cv2.destroyAllWindows()
