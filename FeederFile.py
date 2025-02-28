@@ -16,6 +16,54 @@ DANGER_SENSOR_RADIUS_SQUARED = math.pow(DANGER_SENSOR_RADIUS, 2)
 NUM_SENSORS = 16
 CONSUMPTION_PER_SECOND = 4
 
+VOWELS = ["a","e","i","o","u","y"]
+CONSONANTS = ["b","c","d","f","g","h","j","k","l","m","n","p","q","r","s","t","v","w","x","z"]
+
+
+def pick_name():
+    return (f"{random.choice(CONSONANTS).upper()}{random.choice(VOWELS)}{random.choice(CONSONANTS)}"
+            f"{random.choice(VOWELS)}{random.choice(CONSONANTS)}{random.choice(VOWELS)}{random.choice(CONSONANTS)}")
+
+def mutate_name(name:str) -> str:
+    """
+    picks a new name that is one character different from the given name
+    :param name: a source name, 7 characters long
+    :return: a slightly different name, 7 characters long.
+    """
+    index = random.randint(0,6)
+
+    if index == 0:
+        new_name = random.choice(CONSONANTS).upper()
+    else:
+        new_name = name[0]
+
+    for i in range(1,7):
+        if index == i:
+            if index%2==0:
+                new_name += random.choice(CONSONANTS)
+            else:
+                new_name += random.choice(VOWELS)
+        else:
+            new_name += name[i]
+
+    return new_name
+
+def baby_name(name1:str, name2:str) -> str:
+    """
+    picks a new name, randomly composed of the letters in the parents' names
+    :param name1: a 7-character string
+    :param name2: another 7-character string
+    :return: a new 7-character string.
+    """
+    baby_name = ""
+    for i in range(7):
+        if random.random() > 0.5:
+            baby_name += name1[i]
+        else:
+            baby_name += name2[i]
+    return baby_name
+
+
 class Feeder:
 
     def __init__(self, genes: Optional[List[float]] = None):
@@ -35,6 +83,7 @@ class Feeder:
         self.food_level = 50
         self.age = 0.0
         self.death_reason = ""
+        self.name = pick_name()
 
     def reset(self):
         self.is_alive = True
