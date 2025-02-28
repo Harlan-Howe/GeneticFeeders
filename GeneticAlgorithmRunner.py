@@ -211,7 +211,21 @@ class GeneticAlgorithmRunner:
         except Exception as e:
             print(f"An error occurred: {e}")
 
-
+    def load_generation(self, filename):
+        all_weights:List[List[float]] = []
+        try:
+            with open(filename, "r") as file:
+                self.generation_number = int(file.readline())
+                line = file.readline()
+                while line:
+                    weights_strings = line.split("\t")
+                    weights = []
+                    for ws in weights_strings:
+                        weights.append(float(ws))
+                    all_weights.append(weights)
+            self.reset_feeder_list(all_weights)
+        except Exception as e:
+            print(f"Problem opening file: {e}")
 if __name__ == "__main__":
     gar = GeneticAlgorithmRunner()
     gar.initial_setup()
