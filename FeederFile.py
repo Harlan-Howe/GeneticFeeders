@@ -1,3 +1,4 @@
+import copy
 import math
 import random
 from typing import List, Tuple, Optional
@@ -223,3 +224,34 @@ class Feeder:
                                 org=(int(center[0] - DANGER_SENSOR_RADIUS*scale), int(center[1] - DANGER_SENSOR_RADIUS*scale)),
                                 fontFace=cv2.FONT_HERSHEY_PLAIN,
                                 fontScale=scale*2, color=self.color)
+
+    def have_sex(self, other:"Feeder") -> "Feeder":
+        """
+        "When a mommy Feeder and a daddy Feeder really love each other...."
+
+        Creates a new Feeder, based on random combination of the genetics of the parents.
+
+        :param other: the mate to self
+        :return: the baby feeder created by these two parents, self and other.
+        """
+        parent_1_genes = self.genes  # a list of 4 * NUM_SENSORS floats
+        parent_2_genes = other.genes # another list of 4 * NUM_SENSORS floats.
+
+        # make baby_genes become a new list of 4 * NUM_SENSORS floats.
+        baby_genes = copy.deepcopy(parent_1_genes) # TODO: This is wrong. Do something sexier.
+
+        baby = Feeder(genes=baby_genes)
+        return baby
+
+    def get_mutated_version(self) -> "Feeder":
+        """
+        creates a new Feeder with a genetic code that may be slightly different from self's. I.e., there is some random
+        chance that some random genes are changed by some random amount.
+
+        :return: a new Feeder, a mutated version of self.
+        """
+        new_gene_set = copy.deepcopy(self.genes)
+
+        # TODO: use random to potentially make one or more changes to these genes.
+
+        return Feeder(new_gene_set)
