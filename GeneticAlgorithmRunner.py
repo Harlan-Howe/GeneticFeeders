@@ -65,10 +65,13 @@ class GeneticAlgorithmRunner:
         for i in range(200):
             self.food_list.append(Food())
 
-    def reset_feeder_list(self):
+    def reset_feeder_list(self, all_weights:List[List[float]] = None):
         self.feeder_list.clear()
         for i in range(25):
-            self.feeder_list.append(Feeder())
+            if all_weights is None:
+                self.feeder_list.append(Feeder())
+            else:
+                self.feeder_list.append(Feeder(genes=all_weights[i]))
         self.cycle_ongoing = True
         self.age_of_cycle = 0.0
 
