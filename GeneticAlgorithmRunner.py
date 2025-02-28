@@ -68,21 +68,26 @@ class GeneticAlgorithmRunner:
         for i in range(200):
             self.food_list.append(Food())
 
-    def reset_feeder_list(self, all_weights:List[List[float]] = None):
+    def reset_feeder_list(self, all_weights:List[List[float]] = None, names:List[str] = None):
         self.feeder_list.clear()
         for i in range(NUM_FEEDERS):
             if all_weights is None:
                 self.feeder_list.append(Feeder())
             else:
                 self.feeder_list.append(Feeder(genes=all_weights[i]))
+                self.feeder_list[i].name = names[i]
         self.cycle_ongoing = True
         self.age_of_cycle = 0.0
         self.should_save_this_generation = False
 
+
     def display_feeders(self, canvas: np.ndarray):
-        for i in range(5):
-            for j in range(5):
-                self.feeder_list[i * 5 + j].display_attributes_at(canvas, (110 * j + 60, 130 * i + 90), 0.5)
+
+        num_rows = int(math.sqrt(len(self.feeder_list)))
+        num_cols = math.ceil(len(self.feeder_list)/num_rows)
+        for i in range(num_rows):
+            for j in range(num_cols):
+                self.feeder_list[i * num_cols + j].display_attributes_at(canvas, (110 * j + 60, 130 * i + 90), 0.5)
 
     def animation_loop(self):
         while True:
@@ -221,11 +226,9 @@ class GeneticAlgorithmRunner:
     def save_generation(self, filename):
         text_to_write = f"{self.program_run_number}\n{self.generation_number}\n"
         for bug in self.feeder_list:
-
+            text_to_write += bug.name
             for i in range(len(bug.genes)):
-                text_to_write += (f"{bug.genes[i]}")
-                if i < len(bug.genes)-1:
-                    text_to_write += "\t"
+                text_to_write += (f"\t{bug.genes[i]}")
             text_to_write += "\n"
         try:
             with open(filename, "w") as file:
@@ -240,15 +243,18 @@ class GeneticAlgorithmRunner:
             with open(filename, "r") as file:
                 self.program_run_number = int(file.readline())
                 self.generation_number = int(file.readline())
+                names: List[str] = []
                 line = file.readline()
                 while line:
-                    weights_strings = line.split("\t")
+                    parts = line.split("\t")
+                    names.append(parts[0])
+                    del(parts[0])
                     weights = []
-                    for ws in weights_strings:
-                        weights.append(float(ws))
+                    for weight_string in parts:
+                        weights.append(float(weight_string))
                     all_weights.append(weights)
                     line = file.readline()
-            self.reset_feeder_list(all_weights)
+            self.reset_feeder_list(all_weights, names)
         except Exception as e:
             print(f"Problem opening file: {e}")
 
