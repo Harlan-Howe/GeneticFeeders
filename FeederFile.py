@@ -17,7 +17,7 @@ CONSUMPTION_PER_SECOND = 4
 
 class Feeder:
 
-    def __init__(self, genes: Optional[Tuple[float, ...]] = None):
+    def __init__(self, genes: Optional[List[float]] = None):
         self.position: List[float] = [random.randint(0, 800), random.randint(0, 800)]
         self.orientation = random.random()*2*math.pi-math.pi
         self.speed = 15.0
@@ -29,7 +29,7 @@ class Feeder:
         if genes is None:
             self.genes = tuple([2*random.random()-1 for i in range(4*NUM_SENSORS)])
         else:
-            self.genes = genes
+            self.genes = tuple(genes)
         self.is_alive = True
         self.food_level = 50
         self.age = 0.0
