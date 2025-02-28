@@ -82,7 +82,7 @@ class GeneticAlgorithmRunner:
     def display_feeders(self, canvas: np.ndarray):
         for i in range(5):
             for j in range(5):
-                self.feeder_list[i * 5 + j].display_attributes_at(canvas, (110 * j + 60, 110 * i + 60), 0.5)
+                self.feeder_list[i * 5 + j].display_attributes_at(canvas, (110 * j + 60, 130 * i + 90), 0.5)
 
     def animation_loop(self):
         while True:
@@ -150,7 +150,7 @@ class GeneticAlgorithmRunner:
     def update_stats_window(self):
         if self.cycle_ongoing:
             self.feeder_list.sort(reverse=True)
-            stats_canvas = np.ones((600, 600, 3), dtype=float)
+            stats_canvas = np.ones((700, 600, 3), dtype=float)
             self.display_feeders(stats_canvas)
             cv2.imshow("stats", stats_canvas)
 

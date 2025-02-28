@@ -261,6 +261,9 @@ class Feeder:
                      pt2=front,
                      color=(0.0, 0.0, 0.0),
                      thickness=1)
+            cv2.putText(img=canvas, text=self.name, org= (int(center[0]-DANGER_SENSOR_RADIUS*scale),
+                                                          int(center[1] - DANGER_SENSOR_RADIUS*scale - 30*scale)),
+                        fontFace=cv2.FONT_HERSHEY_PLAIN, fontScale=scale*2, color=self.color)
 
             if not self.is_alive:
                 if self.food_level > 0:
