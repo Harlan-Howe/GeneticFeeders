@@ -109,6 +109,8 @@ class GeneticAlgorithmRunner:
                             fontFace=cv2.FONT_HERSHEY_PLAIN, fontScale=1, color = (0,0,0))
             cv2.putText(img=main_canvas, text=f"Generation {self.generation_number}",org=(10,10),
                         fontFace=cv2.FONT_HERSHEY_PLAIN, fontScale=1, color = (0,0,0))
+            cv2.putText(img=main_canvas, text=f"run #: {self.program_run_number}", org = (700,10),
+                        fontFace=cv2.FONT_HERSHEY_PLAIN, fontScale=1, color=(0,0,0))
             self.draw_all_feeders(main_canvas)
             cv2.imshow("Canvas", main_canvas)
             response = cv2.waitKey(10)
