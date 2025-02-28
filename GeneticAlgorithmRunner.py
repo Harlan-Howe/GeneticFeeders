@@ -13,6 +13,7 @@ from FoodFile import Food, FOOD_RADIUS
 MAX_CYCLE_DURATION = 60
 FOOD_THRESHOLD_SQUARED = math.pow(FOOD_RADIUS + FEEDER_RADIUS, 2)
 DANGER_THRESHOLD_SQUARED = math.pow(DANGERBALL_RADIUS + FEEDER_RADIUS, 2)
+NUM_FEEDERS = 25
 
 class GeneticAlgorithmRunner:
 
@@ -69,7 +70,7 @@ class GeneticAlgorithmRunner:
 
     def reset_feeder_list(self, all_weights:List[List[float]] = None):
         self.feeder_list.clear()
-        for i in range(25):
+        for i in range(NUM_FEEDERS):
             if all_weights is None:
                 self.feeder_list.append(Feeder())
             else:
