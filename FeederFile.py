@@ -49,6 +49,12 @@ class Feeder:
         self.is_alive = False
         self.death_reason = reason
 
+    def rejuvenate(self):
+        self.is_alive = True
+        self.position = [random.randint(0, 800), random.randint(0, 800)]
+        self.orientation = random.random() * 2 * math.pi - math.pi
+        self.death_reason = ""
+
     def draw_self(self, canvas: np.ndarray, display_sensors=False):
         if display_sensors:
             for i in range(NUM_SENSORS):
