@@ -246,6 +246,7 @@ class GeneticAlgorithmRunner:
                     for ws in weights_strings:
                         weights.append(float(ws))
                     all_weights.append(weights)
+                    line = file.readline()
             self.reset_feeder_list(all_weights)
         except Exception as e:
             print(f"Problem opening file: {e}")
