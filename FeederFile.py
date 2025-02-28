@@ -54,6 +54,10 @@ class Feeder:
         self.position = [random.randint(0, 800), random.randint(0, 800)]
         self.orientation = random.random() * 2 * math.pi - math.pi
         self.death_reason = ""
+        self.food_level = 50
+        self.speed = 15.0
+        self.turn_ratio = 0.0
+        self.age = 0.0
 
     def draw_self(self, canvas: np.ndarray, display_sensors=False):
         if display_sensors:
