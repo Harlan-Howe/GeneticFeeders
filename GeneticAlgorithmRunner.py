@@ -35,6 +35,7 @@ class GeneticAlgorithmRunner:
         self.age_of_cycle = 0.0
         self.generation_number = 0
         self.should_save_this_generation = False
+        self.program_run_number = random.randint(1000,9999)
 
     def create_dangers_and_food(self):
         self.create_moving_dangers()
@@ -209,14 +210,13 @@ class GeneticAlgorithmRunner:
         if load_YN == 'y':
             load_filename = input("Enter the name of the file, or type 'cancel' to change your mind. ")
             if load_filename != "cancel":
-                pass
-                #TODO write this.
+                self.load_generation(filename=load_filename)
 
-        self.save_filename = f"generation {random.randint(1000,9999)}"
+        self.save_filename = f"generation {self.program_run_number}"
         print("Press 's' to save the current generation at the end of a cycle.")
 
     def save_generation(self, filename):
-        text_to_write = f"{self.generation_number}\n"
+        text_to_write = f"{self.program_run_number}\n{self.generation_number}\n"
         for bug in self.feeder_list:
 
             for i in range(len(bug.genes)):
@@ -235,6 +235,7 @@ class GeneticAlgorithmRunner:
         all_weights:List[List[float]] = []
         try:
             with open(filename, "r") as file:
+                self.program_run_number = int(file.readline())
                 self.generation_number = int(file.readline())
                 line = file.readline()
                 while line:
