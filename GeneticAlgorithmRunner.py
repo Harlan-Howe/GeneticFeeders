@@ -34,6 +34,7 @@ class GeneticAlgorithmRunner:
         self.cycle_ongoing = True
         self.age_of_cycle = 0.0
         self.generation_number = 0
+        self.should_save_this_generation = False
 
     def create_dangers_and_food(self):
         self.create_moving_dangers()
@@ -74,6 +75,7 @@ class GeneticAlgorithmRunner:
                 self.feeder_list.append(Feeder(genes=all_weights[i]))
         self.cycle_ongoing = True
         self.age_of_cycle = 0.0
+        self.should_save_this_generation = False
 
     def display_feeders(self, canvas: np.ndarray):
         for i in range(5):
@@ -107,8 +109,21 @@ class GeneticAlgorithmRunner:
             self.draw_all_feeders(main_canvas)
             cv2.imshow("Canvas", main_canvas)
             response = cv2.waitKey(10)
-            if response != -1:
+            if response == 32: # ascii for spacebar
                 self.reset_feeder_list()
+
+            if response == 115: #  ascii for s
+               self.should_save_this_generation = True
+
+            if not self.cycle_ongoing:
+                if self.should_save_this_generation:
+                    self.save_generation(f"{self.save_filename}-{self.generation_number}")
+                self.advance_generation()
+
+                self.cycle_ongoing = True
+                self.age_of_cycle = 0.0
+                self.should_save_this_generation = False
+                self.generation_number += 1
 
     def kill_all_feeders(self):
         for bug in self.feeder_list:
@@ -189,7 +204,7 @@ class GeneticAlgorithmRunner:
 
     def initial_setup(self):
         load_YN = input("Do you want to load an existing generation? (Y/N) ").lower()
-        if load_YN:
+        if load_YN == 'y':
             load_filename = input("Enter the name of the file, or type 'cancel' to change your mind. ")
             if load_filename != "cancel":
                 pass
@@ -203,7 +218,7 @@ class GeneticAlgorithmRunner:
         for bug in self.feeder_list:
 
             for i in range(len(bug.genes)):
-                text_to_write += (bug.genes[i])
+                text_to_write += (f"{bug.genes[i]}")
                 if i < len(bug.genes)-1:
                     text_to_write += "\t"
             text_to_write += "\n"
@@ -229,6 +244,12 @@ class GeneticAlgorithmRunner:
             self.reset_feeder_list(all_weights)
         except Exception as e:
             print(f"Problem opening file: {e}")
+
+    def advance_generation(self):
+        # Dummy behavior. Just rejuvenates every Feeder, so the next generation is the same as this one.
+        for bug in self.feeder_list:
+            bug.rejuvenate()
+
 if __name__ == "__main__":
     gar = GeneticAlgorithmRunner()
     gar.initial_setup()
