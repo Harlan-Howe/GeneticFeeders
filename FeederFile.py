@@ -290,17 +290,19 @@ class Feeder:
         baby_genes = copy.deepcopy(parent_1_genes) # TODO: This is wrong. Do something sexier.
 
         baby = Feeder(genes=baby_genes)
+        baby.name = baby_name(self.name, other.name)
         return baby
 
-    def get_mutated_version(self) -> "Feeder":
+    def get_mutated_version_of_Feeder(self) -> "Feeder":
         """
         creates a new Feeder with a genetic code that may be slightly different from self's. I.e., there is some random
         chance that some random genes are changed by some random amount.
 
         :return: a new Feeder, a mutated version of self.
         """
-        new_gene_set = copy.deepcopy(self.genes)
+        new_gene_set = list(copy.deepcopy(self.genes))
 
         # TODO: use random to potentially make one or more changes to these genes.
-
-        return Feeder(new_gene_set)
+        new_Feeder = Feeder(new_gene_set)
+        new_Feeder.name = mutate_name(self.name)
+        return new_Feeder
