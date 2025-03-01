@@ -110,13 +110,7 @@ class GeneticAlgorithmRunner:
                 self.kill_all_feeders()
             self.update_stats_window()
 
-            if self.cycle_ongoing:
-                cv2.putText(img=main_canvas, text=f"Time: {self.age_of_cycle:3.2f}", org = (700,775),
-                            fontFace=cv2.FONT_HERSHEY_PLAIN, fontScale=1, color = (0,0,0))
-            cv2.putText(img=main_canvas, text=f"Generation {self.generation_number}",org=(10,10),
-                        fontFace=cv2.FONT_HERSHEY_PLAIN, fontScale=1, color = (0,0,0))
-            cv2.putText(img=main_canvas, text=f"run #: {self.program_run_number}", org = (700,10),
-                        fontFace=cv2.FONT_HERSHEY_PLAIN, fontScale=1, color=(0,0,0))
+            self.draw_labels_in_simulation_window(main_canvas)
             self.draw_all_feeders(main_canvas)
             cv2.imshow("Canvas", main_canvas)
             response = cv2.waitKey(10)
@@ -124,14 +118,28 @@ class GeneticAlgorithmRunner:
                self.should_save_this_generation = True
 
             if not self.cycle_ongoing:
-                if self.should_save_this_generation:
-                    self.save_generation(f"{self.save_filename}-{self.generation_number}")
-                self.advance_generation()
+                self.handle_end_of_generation()
 
-                self.cycle_ongoing = True
-                self.age_of_cycle = 0.0
-                self.should_save_this_generation = False
-                self.generation_number += 1
+    def draw_labels_in_simulation_window(self, main_canvas):
+        if self.cycle_ongoing:
+            cv2.putText(img=main_canvas, text=f"Time: {self.age_of_cycle:3.2f}", org=(700, 775),
+                        fontFace=cv2.FONT_HERSHEY_PLAIN, fontScale=1, color=(0, 0, 0))
+            cv2.putText(img=main_canvas, text=f"Num feeders: {self.live_feeders}", org=(10, 775),
+                        fontFace=cv2.FONT_HERSHEY_PLAIN,
+                        fontScale=1, color=(0, 0, 0))
+        cv2.putText(img=main_canvas, text=f"Generation {self.generation_number}", org=(10, 10),
+                    fontFace=cv2.FONT_HERSHEY_PLAIN, fontScale=1, color=(0, 0, 0))
+        cv2.putText(img=main_canvas, text=f"run #: {self.program_run_number}", org=(700, 10),
+                    fontFace=cv2.FONT_HERSHEY_PLAIN, fontScale=1, color=(0, 0, 0))
+
+    def handle_end_of_generation(self):
+        if self.should_save_this_generation:
+            self.save_generation(f"{self.save_filename}-{self.generation_number}")
+        self.advance_generation()
+        self.cycle_ongoing = True
+        self.age_of_cycle = 0.0
+        self.should_save_this_generation = False
+        self.generation_number += 1
 
     def kill_all_feeders(self):
         for bug in self.feeder_list:
@@ -139,14 +147,13 @@ class GeneticAlgorithmRunner:
 
 
     def draw_all_feeders(self, main_canvas):
-        live_feeders = 0
+        self.live_feeders = 0
         for bug in self.feeder_list:
             if bug.is_alive:
                 bug.draw_self(canvas=main_canvas, display_sensors=True)
-                live_feeders += 1
-        cv2.putText(img=main_canvas, text=f"Num bugs: {live_feeders}", org=(10, 775), fontFace=cv2.FONT_HERSHEY_PLAIN,
-                    fontScale=1, color=(0, 0, 0))
-        if live_feeders == 0:
+                self.live_feeders += 1
+
+        if self.live_feeders == 0:
             self.cycle_ongoing = False
 
     def update_stats_window(self):
