@@ -10,6 +10,8 @@ from DangerBallFile import DangerBall, DANGERBALL_RADIUS
 from FeederFile import Feeder, FEEDER_RADIUS
 from FoodFile import Food, FOOD_RADIUS
 
+DISPLAY_SENSORS = True
+
 MAX_CYCLE_DURATION = 60
 FOOD_THRESHOLD_SQUARED = math.pow(FOOD_RADIUS + FEEDER_RADIUS, 2)
 DANGER_THRESHOLD_SQUARED = math.pow(DANGERBALL_RADIUS + FEEDER_RADIUS, 2)
@@ -150,7 +152,7 @@ class GeneticAlgorithmRunner:
         self.live_feeders = 0
         for bug in self.feeder_list:
             if bug.is_alive:
-                bug.draw_self(canvas=main_canvas, display_sensors=True)
+                bug.draw_self(canvas=main_canvas, display_sensors=DISPLAY_SENSORS)
                 self.live_feeders += 1
 
         if self.live_feeders == 0:
