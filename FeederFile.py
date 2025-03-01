@@ -139,7 +139,7 @@ class Feeder:
                  pt2=front,
                  color=(0.0, 0.0, 0.0),
                  thickness=1)
-        cv2.putText(img=canvas, text=f"{self.age:3.2f}",org=(int(self.position[0]-10),int(self.position[1]-15)),fontFace=cv2.FONT_HERSHEY_PLAIN, fontScale=0.5, color=self.color)
+        cv2.putText(img=canvas, text=f"{self.name}",org=(int(self.position[0]-20),int(self.position[1]-15)),fontFace=cv2.FONT_HERSHEY_PLAIN, fontScale=0.75, color=self.color)
 
     def clear_sensors(self):
         self.food_sensors = [0.0 for _ in range(NUM_SENSORS)]
