@@ -120,9 +120,6 @@ class GeneticAlgorithmRunner:
             self.draw_all_feeders(main_canvas)
             cv2.imshow("Canvas", main_canvas)
             response = cv2.waitKey(10)
-            if response == 32: # ascii for spacebar
-                self.reset_feeder_list()
-
             if response == 115: #  ascii for s
                self.should_save_this_generation = True
 
