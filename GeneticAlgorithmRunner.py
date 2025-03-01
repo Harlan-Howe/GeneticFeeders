@@ -10,7 +10,7 @@ from DangerBallFile import DangerBall, DANGERBALL_RADIUS
 from FeederFile import Feeder, FEEDER_RADIUS
 from FoodFile import Food, FOOD_RADIUS
 
-DISPLAY_SENSORS = True
+DISPLAY_SENSORS = False
 
 MAX_CYCLE_DURATION = 60
 FOOD_THRESHOLD_SQUARED = math.pow(FOOD_RADIUS + FEEDER_RADIUS, 2)
@@ -39,6 +39,7 @@ class GeneticAlgorithmRunner:
         self.generation_number = 0
         self.should_save_this_generation = False
         self.program_run_number = random.randint(1000,9999)
+        self.live_feeders = NUM_FEEDERS
 
     def create_dangers_and_food(self):
         self.create_moving_dangers()
