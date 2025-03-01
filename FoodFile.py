@@ -12,4 +12,4 @@ class Food:
                     random.randint(FOOD_RADIUS,800-FOOD_RADIUS))
 
     def draw_self(self, canvas:np.ndarray):
-        cv2.circle(img=canvas, center=self.pos, radius = FOOD_RADIUS, color=(0,1,0), thickness = -1)
+        cv2.circle(img=canvas, center=self.pos, radius = FOOD_RADIUS, color=(0,0.5,0.25), thickness = -1)
