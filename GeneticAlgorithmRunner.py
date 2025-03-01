@@ -263,6 +263,24 @@ class GeneticAlgorithmRunner:
             print(f"Problem opening file: {e}")
 
     def advance_generation(self):
+        """
+        Precondition: All the feeders have died off, either from collisions with dangers, starvation, or the simulation
+        has expired. Self.feeder list is sorted by the success of the feeders, with the most successful at the start of
+        the list. Note: some of the feeders at the bottom of the list might have been unlucky and spawned on top of a
+        danger; you may wish to check the feeder's age to see whether it is below some threshold and give them a second
+        chance. Or not... luck may be part of your breeding program!
+
+        Postcondition: self.feeder_list contains NUM_FEEDERS feeders, new ones and/or rejuvenated returning ones, ready
+        to act as the next generation. These might be:
+        • returning successful feeders, rejuvenated
+        • children of feeder pairs
+        • mutated versions of feeders
+        • random additions
+        • other (e.g., combination children/mutated?)
+
+        :return: None
+        """
+        # TODO: write this method, replacing the following code.
         # Dummy behavior. Just rejuvenates every Feeder, so the next generation is the same as this one.
         for bug in self.feeder_list:
             bug.rejuvenate()
