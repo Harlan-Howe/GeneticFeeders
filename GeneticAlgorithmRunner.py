@@ -11,12 +11,12 @@ from FeederFile import Feeder, FEEDER_RADIUS
 from FoodFile import Food, FOOD_RADIUS
 
 DISPLAY_SENSORS = False
-GRAPHIC_SIMULATION = False
+GRAPHIC_SIMULATION = True
 
 MAX_CYCLE_DURATION = 60
 FOOD_THRESHOLD_SQUARED = math.pow(FOOD_RADIUS + FEEDER_RADIUS, 2)
 DANGER_THRESHOLD_SQUARED = math.pow(DANGERBALL_RADIUS + FEEDER_RADIUS, 2)
-NUM_FEEDERS = 25
+NUM_FEEDERS = 81
 
 class GeneticAlgorithmRunner:
 
@@ -89,9 +89,11 @@ class GeneticAlgorithmRunner:
 
         num_rows = int(math.sqrt(len(self.feeder_list)))
         num_cols = math.ceil(len(self.feeder_list)/num_rows)
+        scale = 2.5/num_cols
+        feeder_width = int(600/num_cols)
         for i in range(num_rows):
             for j in range(num_cols):
-                self.feeder_list[i * num_cols + j].display_attributes_at(canvas, (110 * j + 60, 130 * i + 90), 0.5)
+                self.feeder_list[i * num_cols + j].display_attributes_at(canvas, (feeder_width * j + 60, (feeder_width+10) * i + 90), scale)
 
     def animation_loop(self):
         while True:
@@ -125,11 +127,16 @@ class GeneticAlgorithmRunner:
                 response = cv2.waitKey(10)
             else:
                 response = cv2.waitKey(1)
-            if response == 115: #  ascii for s
+            if response == 115 or response == 83: #  ascii for s or S -- for Save
                self.should_save_this_generation = True
+
+            if response == 113 or response == 81:  # ascii for q or Q  -- for Quit!
+                break
 
             if not self.cycle_ongoing:
                 self.handle_end_of_generation()
+
+
 
     def draw_labels_in_simulation_window(self, main_canvas):
         if self.cycle_ongoing:
@@ -177,7 +184,7 @@ class GeneticAlgorithmRunner:
     def update_stats_window(self):
         if self.cycle_ongoing:
             self.feeder_list.sort(reverse=True)
-            stats_canvas = np.ones((700, 600, 3), dtype=float)
+            stats_canvas = np.ones((750, 600, 3), dtype=float)
             self.display_feeders(stats_canvas)
             cv2.imshow("stats", stats_canvas)
 
