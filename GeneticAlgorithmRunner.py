@@ -11,6 +11,7 @@ from FeederFile import Feeder, FEEDER_RADIUS
 from FoodFile import Food, FOOD_RADIUS
 
 DISPLAY_SENSORS = False
+GRAPHIC_SIMULATION = True
 
 MAX_CYCLE_DURATION = 60
 FOOD_THRESHOLD_SQUARED = math.pow(FOOD_RADIUS + FEEDER_RADIUS, 2)
@@ -96,6 +97,8 @@ class GeneticAlgorithmRunner:
         while True:
             now = datetime.now()
             delta_t = (now - self.latest).total_seconds()
+            if not GRAPHIC_SIMULATION:
+                delta_t *= 10
             self.age_of_cycle += delta_t
             self.latest = now
 
@@ -108,15 +111,19 @@ class GeneticAlgorithmRunner:
             self.move_all_feeders(delta_t)
             self.check_for_eaten_food()
             self.check_for_feeder_danger_collisions()
-            self.draw_all_food(main_canvas)
+            if GRAPHIC_SIMULATION:
+                self.draw_all_food(main_canvas)
             if self.cycle_ongoing and self.age_of_cycle >= MAX_CYCLE_DURATION:
                 self.kill_all_feeders()
-            self.update_stats_window()
+            if GRAPHIC_SIMULATION:
+                self.update_stats_window()
 
-            self.draw_labels_in_simulation_window(main_canvas)
-            self.draw_all_feeders(main_canvas)
-            cv2.imshow("Canvas", main_canvas)
-            response = cv2.waitKey(10)
+                self.draw_labels_in_simulation_window(main_canvas)
+                self.draw_all_feeders(main_canvas)
+                cv2.imshow("Canvas", main_canvas)
+                response = cv2.waitKey(10)
+            else:
+                response = cv2.waitKey(1)
             if response == 115: #  ascii for s
                self.should_save_this_generation = True
 
@@ -136,6 +143,8 @@ class GeneticAlgorithmRunner:
                     fontFace=cv2.FONT_HERSHEY_PLAIN, fontScale=1, color=(0, 0, 0))
 
     def handle_end_of_generation(self):
+        self.update_stats_window()
+        cv2.waitKey(10)
         if self.should_save_this_generation:
             self.save_generation(f"{self.save_filename}-{self.generation_number}")
         self.advance_generation()
@@ -213,7 +222,8 @@ class GeneticAlgorithmRunner:
     def move_and_draw_dangers(self, delta_t, main_canvas):
         for db in self.moving_danger_list:
             db.animate_step(delta_t)
-            db.draw_self(main_canvas)
+            if GRAPHIC_SIMULATION:
+                db.draw_self(main_canvas)
 
     def clear_all_live_feeder_sensors(self):
         for bug in self.feeder_list:
