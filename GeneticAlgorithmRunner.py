@@ -11,7 +11,7 @@ from FeederFile import Feeder, FEEDER_RADIUS
 from FoodFile import Food, FOOD_RADIUS
 
 DISPLAY_SENSORS = False
-GRAPHIC_SIMULATION = True
+GRAPHIC_SIMULATION = False
 
 MAX_CYCLE_DURATION = 60
 FOOD_THRESHOLD_SQUARED = math.pow(FOOD_RADIUS + FEEDER_RADIUS, 2)
@@ -86,7 +86,8 @@ class GeneticAlgorithmRunner:
 
 
     def display_feeders(self, canvas: np.ndarray):
-
+        cv2.putText(img=canvas, text=f"Generation: {self.generation_number}", org=(10,10),
+                    fontFace=cv2.FONT_HERSHEY_PLAIN, fontScale=1.0, color=(0, 0, 0))
         num_rows = int(math.sqrt(len(self.feeder_list)))
         num_cols = math.ceil(len(self.feeder_list)/num_rows)
         scale = 2.5/num_cols
@@ -162,7 +163,7 @@ class GeneticAlgorithmRunner:
         self.age_of_cycle = 0.0
         self.should_save_this_generation = False
         self.generation_number += 1
-        print(f"starting generation: {self.generation_number}")
+
 
     def kill_all_feeders(self):
         for bug in self.feeder_list:
