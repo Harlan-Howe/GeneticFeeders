@@ -1,7 +1,7 @@
 import math
 import random
 from datetime import datetime
-from typing import List
+from typing import List, Set
 
 import cv2
 import numpy as np
@@ -11,7 +11,7 @@ from FeederFile import Feeder, FEEDER_RADIUS
 from FoodFile import Food, FOOD_RADIUS
 
 DISPLAY_SENSORS = False
-GRAPHIC_SIMULATION = True
+GRAPHIC_SIMULATION = False
 
 MAX_CYCLE_DURATION = 60
 FOOD_THRESHOLD_SQUARED = math.pow(FOOD_RADIUS + FEEDER_RADIUS, 2)
@@ -115,6 +115,7 @@ class GeneticAlgorithmRunner:
                 self.draw_all_food(main_canvas)
             if self.cycle_ongoing and self.age_of_cycle >= MAX_CYCLE_DURATION:
                 self.kill_all_feeders()
+            self.count_live_feeders()
             if GRAPHIC_SIMULATION:
                 self.update_stats_window()
 
@@ -143,28 +144,33 @@ class GeneticAlgorithmRunner:
                     fontFace=cv2.FONT_HERSHEY_PLAIN, fontScale=1, color=(0, 0, 0))
 
     def handle_end_of_generation(self):
-        self.update_stats_window()
         cv2.waitKey(10)
         if self.should_save_this_generation:
             self.save_generation(f"{self.save_filename}-{self.generation_number}")
-        self.advance_generation()
         self.cycle_ongoing = True
+        self.update_stats_window()
+
+        self.advance_generation()
+
         self.age_of_cycle = 0.0
         self.should_save_this_generation = False
         self.generation_number += 1
+        print(f"starting generation: {self.generation_number}")
 
     def kill_all_feeders(self):
         for bug in self.feeder_list:
             bug.die()
 
-
     def draw_all_feeders(self, main_canvas):
-        self.live_feeders = 0
         for bug in self.feeder_list:
             if bug.is_alive:
                 bug.draw_self(canvas=main_canvas, display_sensors=DISPLAY_SENSORS)
-                self.live_feeders += 1
 
+    def count_live_feeders(self):
+        self.live_feeders = 0
+        for bug in self.feeder_list:
+            if bug.is_alive:
+                self.live_feeders += 1
         if self.live_feeders == 0:
             self.cycle_ongoing = False
 
@@ -190,14 +196,14 @@ class GeneticAlgorithmRunner:
                         bug.death_reason = "O"
 
     def check_for_eaten_food(self):
-        eaten_food_list: List[Food] = []
+        eaten_food_list: Set[Food] = set()
         for f in self.food_list:
             for bug in self.feeder_list:
                 if bug.is_alive:
                     if math.pow(f.pos[0] - bug.position[0], 2) + math.pow(f.pos[1] - bug.position[1],
                                                                           2) < FOOD_THRESHOLD_SQUARED:
                         bug.food_level = min(100, bug.food_level + 10)
-                        eaten_food_list.append(f)
+                        eaten_food_list.add(f)
         for ef in eaten_food_list:
             self.food_list.remove(ef)
             self.food_list.append(Food())
