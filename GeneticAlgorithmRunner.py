@@ -11,7 +11,8 @@ from FeederFile import Feeder, FEEDER_RADIUS
 from FoodFile import Food, FOOD_RADIUS
 
 DISPLAY_SENSORS = False
-GRAPHIC_SIMULATION = False
+GRAPHIC_SIMULATION = True
+DISPLAY_GRAPH = True
 
 MAX_CYCLE_DURATION = 60
 FOOD_THRESHOLD_SQUARED = math.pow(FOOD_RADIUS + FEEDER_RADIUS, 2)
@@ -184,7 +185,8 @@ class GeneticAlgorithmRunner:
             self.best_score_per_generation.append(100 + self.feeder_list[0].food_level)
         else:
             self.best_score_per_generation.append(100 * self.feeder_list[0].age / MAX_CYCLE_DURATION)
-        self.graph_stats_per_generations()
+        if DISPLAY_GRAPH:
+            self.graph_stats_per_generations()
 
     def graph_stats_per_generations(self):
         if len(self.best_score_per_generation) < 2:
