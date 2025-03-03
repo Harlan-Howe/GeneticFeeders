@@ -18,6 +18,8 @@ FOOD_THRESHOLD_SQUARED = math.pow(FOOD_RADIUS + FEEDER_RADIUS, 2)
 DANGER_THRESHOLD_SQUARED = math.pow(DANGERBALL_RADIUS + FEEDER_RADIUS, 2)
 NUM_FEEDERS = 81
 
+GRAPH_SIZE = 400
+
 class GeneticAlgorithmRunner:
 
     def __init__(self):
@@ -41,6 +43,8 @@ class GeneticAlgorithmRunner:
         self.should_save_this_generation = False
         self.program_run_number = random.randint(1000,9999)
         self.live_feeders = NUM_FEEDERS
+        self.best_score_per_generation: List[float] = []
+        self.mean_score_per_generation: List[float] = []
 
     def create_dangers_and_food(self):
         self.create_moving_dangers()
@@ -97,6 +101,7 @@ class GeneticAlgorithmRunner:
                 self.feeder_list[i * num_cols + j].display_attributes_at(canvas, (feeder_width * j + 60, (feeder_width+10) * i + 90), scale)
 
     def animation_loop(self):
+        self.latest = datetime.now()
         while True:
             now = datetime.now()
             delta_t = (now - self.latest).total_seconds()
@@ -152,18 +157,106 @@ class GeneticAlgorithmRunner:
                     fontFace=cv2.FONT_HERSHEY_PLAIN, fontScale=1, color=(0, 0, 0))
 
     def handle_end_of_generation(self):
-        cv2.waitKey(10)
+        self.calculate_stats_for_generation()
+
         if self.should_save_this_generation:
             self.save_generation(f"{self.save_filename}-{self.generation_number}")
         self.cycle_ongoing = True
         self.update_stats_window()
+        cv2.waitKey(10)
 
         self.advance_generation()
 
         self.age_of_cycle = 0.0
-        self.should_save_this_generation = False
+        self.should_save_this_generation = False  # reset "s" key.
         self.generation_number += 1
 
+    def calculate_stats_for_generation(self):
+        self.feeder_list.sort(reverse=True)
+        total_score = 0
+        for feeder in self.feeder_list:
+            if feeder.age >= MAX_CYCLE_DURATION:
+                total_score += (100 + feeder.food_level)
+            else:
+                total_score += 100 * feeder.age / MAX_CYCLE_DURATION
+        self.mean_score_per_generation.append(total_score / NUM_FEEDERS)
+        if self.feeder_list[0].age >= MAX_CYCLE_DURATION:
+            self.best_score_per_generation.append(100 + self.feeder_list[0].food_level)
+        else:
+            self.best_score_per_generation.append(100 * self.feeder_list[0].age / MAX_CYCLE_DURATION)
+        self.graph_stats_per_generations()
+
+    def graph_stats_per_generations(self):
+        if len(self.best_score_per_generation) < 2:
+            return
+        graph_canvas = np.ones((GRAPH_SIZE,GRAPH_SIZE,3), dtype=float)
+        cv2.line(img=graph_canvas, pt1=(15, 15), pt2=(15, GRAPH_SIZE-15), color=(0, 0, 0), thickness=1)
+        cv2.line(img=graph_canvas, pt1=(15, GRAPH_SIZE-15), pt2=(GRAPH_SIZE-15, GRAPH_SIZE-15), color=(0, 0, 0), thickness=1)
+        best_score_ever = 0
+        for score in self.best_score_per_generation:
+            if score > best_score_ever:
+                best_score_ever = score
+        cv2.putText(img=graph_canvas, text="score", org=(5, 10), fontFace=cv2.FONT_HERSHEY_PLAIN,
+                    fontScale=1, color=(0,0,0))
+        cv2.putText(img=graph_canvas, text=f"{best_score_ever:3.1f}", org=(20, 23), fontFace=cv2.FONT_HERSHEY_PLAIN,
+                    fontScale=1, color=(0,0,0))
+        cv2.putText(img=graph_canvas, text=f"gen: {len(self.best_score_per_generation)-1}", org=(GRAPH_SIZE-80, GRAPH_SIZE-30),
+                    fontFace=cv2.FONT_HERSHEY_PLAIN,
+                    fontScale=1, color=(0, 0, 0))
+
+        vertical_scale = (GRAPH_SIZE-15-15)/best_score_ever
+        horizontal_scale = (GRAPH_SIZE-15-15)/(len(self.best_score_per_generation)-1)
+
+        horizontal_line_spacing = 10**(math.floor(math.log10(best_score_ever)))
+        j = 1
+        while j*horizontal_line_spacing < best_score_ever:
+            cv2.line(img=graph_canvas,
+                     pt1=(15, int(GRAPH_SIZE - 15 - j * horizontal_line_spacing * vertical_scale)),
+                     pt2=(GRAPH_SIZE - 15, int(GRAPH_SIZE - 15 - j * horizontal_line_spacing * vertical_scale)),
+                     color=(0.75, 0.75, 0.75),
+                     thickness=1
+                     )
+            j += 1
+
+        vertical_line_spacing = 10**(math.floor(math.log10(len(self.best_score_per_generation)-1)))
+        j = 1
+        while j * vertical_line_spacing < len(self.best_score_per_generation):
+            cv2.line(img=graph_canvas,
+                     pt1=(int(15 + j*vertical_line_spacing * horizontal_scale), 15),
+                     pt2=(int(15 + j*vertical_line_spacing * horizontal_scale), GRAPH_SIZE-15),
+                     color=(0.75, 0.75, 0.75),
+                     thickness=1
+                     )
+            j += 1
+
+        for i in range(len(self.best_score_per_generation)-1):
+            cv2.line(img=graph_canvas,
+                     pt1=(int(15 + horizontal_scale*i), int(GRAPH_SIZE-15-vertical_scale*self.best_score_per_generation[i])),
+                     pt2=(int(15 + horizontal_scale*(i+1)), int(GRAPH_SIZE-15-vertical_scale*self.best_score_per_generation[i+1])),
+                     color=(1, 0, 0), thickness=1)
+
+            if horizontal_scale > 6:
+                cv2.circle(img=graph_canvas, center= (int(15 + horizontal_scale*i), int(GRAPH_SIZE-15-vertical_scale*self.best_score_per_generation[i])),
+                           radius = 3, color=(1, 0, 0), thickness=-1)
+            cv2.line(img=graph_canvas,
+                     pt1=(int(15 + horizontal_scale * i),
+                          int(GRAPH_SIZE - 15 - vertical_scale * self.mean_score_per_generation[i])),
+                     pt2=(int(15 + horizontal_scale * (i + 1)),
+                          int(GRAPH_SIZE - 15 - vertical_scale * self.mean_score_per_generation[i + 1])),
+                     color=(0, 0, 1), thickness=1)
+            if horizontal_scale > 6:
+                cv2.circle(img=graph_canvas, center= (int(15 + horizontal_scale*i), int(GRAPH_SIZE-15-vertical_scale*self.mean_score_per_generation[i])),
+                           radius = 3, color=(0, 0, 1), thickness=-1)
+
+        if horizontal_scale > 6:
+            cv2.circle(img=graph_canvas,
+                       center=(int(15 + horizontal_scale * (i + 1)), int(GRAPH_SIZE - 15 - vertical_scale * self.best_score_per_generation[-1])),
+                       radius=3, color=(1, 0, 0), thickness=-1)
+            cv2.circle(img=graph_canvas,
+                       center=(int(15 + horizontal_scale * (i + 1)), int(
+                           GRAPH_SIZE- 15 - vertical_scale * self.mean_score_per_generation[-1])),
+                       radius=3, color=(0, 0, 1), thickness=-1)
+        cv2.imshow("Graph",graph_canvas)
 
     def kill_all_feeders(self):
         for bug in self.feeder_list:
@@ -252,7 +345,9 @@ class GeneticAlgorithmRunner:
                 self.load_generation(filename=load_filename)
 
         self.save_filename = f"generation {self.program_run_number}"
-        print("Press 's' to save the current generation at the end of a cycle.")
+        print("Click in the graphics window. "
+              "Press 's' to save the current generation at the end of a cycle. "
+              "Press 'q' to quit.")
 
     def save_generation(self, filename):
         text_to_write = f"{self.program_run_number}\n{self.generation_number}\n"
@@ -269,7 +364,7 @@ class GeneticAlgorithmRunner:
             print(f"An error occurred: {e}")
 
     def load_generation(self, filename):
-        all_weights:List[List[float]] = []
+        all_weights: List[List[float]] = []
         try:
             with open(filename, "r") as file:
                 self.program_run_number = int(file.readline())
@@ -317,3 +412,6 @@ if __name__ == "__main__":
     gar.initial_setup()
     gar.animation_loop()
     cv2.destroyAllWindows()
+    print("gen\tbest\tmean")
+    for i in range(len(gar.best_score_per_generation)):
+        print(f"{i}\t{gar.best_score_per_generation[i]:3.2f}\t{gar.mean_score_per_generation[i]:3.2f}")
