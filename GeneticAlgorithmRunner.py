@@ -10,6 +10,8 @@ from DangerBallFile import DangerBall, DANGERBALL_RADIUS
 from FeederFile import Feeder, FEEDER_RADIUS
 from FoodFile import Food, FOOD_RADIUS
 
+
+
 DISPLAY_SENSORS = False
 GRAPHIC_SIMULATION = False
 DISPLAY_GRAPH = True
@@ -18,6 +20,8 @@ MAX_CYCLE_DURATION = 60
 FOOD_THRESHOLD_SQUARED = math.pow(FOOD_RADIUS + FEEDER_RADIUS, 2)
 DANGER_THRESHOLD_SQUARED = math.pow(DANGERBALL_RADIUS + FEEDER_RADIUS, 2)
 NUM_FEEDERS = 81
+NUM_MOVING_DANGERS = 30
+NUM_FOOD = 200
 
 GRAPH_SIZE = 400
 GRAPH_MARGIN = 20
@@ -25,6 +29,7 @@ GRAPH_MARGIN = 20
 class GeneticAlgorithmRunner:
 
     def __init__(self):
+        self.program_run_number = random.randint(1000, 9999)  # a random 4-digit id for this run.
         self.main_canvas = np.ones((800, 800, 3), dtype=float)
         self.stats_canvas = np.ones((600, 600, 3), dtype=float)
         cv2.imshow("stats", self.stats_canvas)
@@ -34,17 +39,17 @@ class GeneticAlgorithmRunner:
         self.all_dangers: List[DangerBall] = []
         self.food_list: List[Food] = []
         self.feeder_list: List[Feeder] = []
+
         self.reset_feeder_list()
         self.create_dangers_and_food()
-
-        self.latest = datetime.now()
 
         self.cycle_ongoing = True
         self.age_of_cycle = 0.0
         self.generation_number = 0
         self.should_save_this_generation = False
-        self.program_run_number = random.randint(1000,9999)
         self.live_feeders = NUM_FEEDERS
+
+        #  stuff for statistics
         self.best_score_per_generation: List[float] = []
         self.mean_score_per_generation: List[float] = []
 
@@ -54,12 +59,19 @@ class GeneticAlgorithmRunner:
         self.create_food()
 
     def create_moving_dangers(self):
-        for i in range(30):
+        """
+        creates the circles that move around the canvas, deadly to the feeders.
+        """
+        for i in range(NUM_MOVING_DANGERS):
             db = DangerBall()
             self.moving_danger_list.append(db)
             self.all_dangers.append(db)
 
     def create_danger_walls(self):
+        """
+        creates the circles that represent the border of the canvas. These are just outside the visible canvas and do
+        not move. They, too, are deadly to the feeders.
+        """
         for i in range(int(800 / DANGERBALL_RADIUS / 2 + 1)):
             self.all_dangers.append(
                 DangerBall(pos=[int(-DANGERBALL_RADIUS / 2 + i * DANGERBALL_RADIUS * 2), int(-DANGERBALL_RADIUS / 2)],
@@ -75,10 +87,19 @@ class GeneticAlgorithmRunner:
                 vel=[0, 0]))
 
     def create_food(self):
-        for i in range(200):
+        """
+        creates a random selection of food items on the canvas, the green solid dots.
+        """
+        for i in range(NUM_FOOD):
             self.food_list.append(Food())
 
     def reset_feeder_list(self, all_weights:List[List[float]] = None, names:List[str] = None):
+        """
+        generates a new set of feeders. If all_weights is None, then they are generated randomly. Otherwise, they
+        are generated based on the weights in all_weights, and use the names given
+        :param all_weights: a List of weight lists to populate the feeders.
+        :param names: the names that should be given to the feeders.
+        """
         self.feeder_list.clear()
         for i in range(NUM_FEEDERS):
             if all_weights is None:
@@ -92,6 +113,10 @@ class GeneticAlgorithmRunner:
 
 
     def display_feeders(self, canvas: np.ndarray):
+        """
+        Tells all the feeders to draw their attributes in the stats window, in a grid.
+        :param canvas: the stats window in which to draw.
+        """
         cv2.putText(img=canvas, text=f"Generation: {self.generation_number}", org=(10,10),
                     fontFace=cv2.FONT_HERSHEY_PLAIN, fontScale=1.0, color=(0, 0, 0))
         num_rows = int(math.sqrt(len(self.feeder_list)))
@@ -103,6 +128,9 @@ class GeneticAlgorithmRunner:
                 self.feeder_list[i * num_cols + j].display_attributes_at(canvas, (feeder_width * j + 60, (feeder_width+10) * i + 90), scale)
 
     def animation_loop(self):
+        """
+        the primary "game loop" that makes the feeders and dangers move around and interact with each other and the food.
+        """
         self.latest = datetime.now()
         while True:
             now = datetime.now()
@@ -147,6 +175,10 @@ class GeneticAlgorithmRunner:
 
 
     def draw_labels_in_simulation_window(self, main_canvas):
+        """
+        draws the information in the four corners of the simulation canvas
+        :param main_canvas: the canvas that displays the simulation
+        """
         if self.cycle_ongoing:
             cv2.putText(img=main_canvas, text=f"Time: {self.age_of_cycle:3.2f}", org=(700, 775),
                         fontFace=cv2.FONT_HERSHEY_PLAIN, fontScale=1, color=(0, 0, 0))
@@ -159,6 +191,10 @@ class GeneticAlgorithmRunner:
                     fontFace=cv2.FONT_HERSHEY_PLAIN, fontScale=1, color=(0, 0, 0))
 
     def handle_end_of_generation(self):
+        """
+        takes care of the legwork when all the feeders have died (or have been killed) to analyze the results of this
+        generation and reset for the next generation.
+        """
         self.calculate_stats_for_generation()
 
         if self.should_save_this_generation:
@@ -174,6 +210,10 @@ class GeneticAlgorithmRunner:
         self.generation_number += 1
 
     def calculate_stats_for_generation(self):
+        """
+        Now that generation is over, computes the score for the best feeder and the mean of the scores for all the
+        feeders for this generation and appends them to the running statistics for the various generations.
+        """
         self.feeder_list.sort(reverse=True)
         total_score = 0
         for feeder in self.feeder_list:
@@ -190,6 +230,9 @@ class GeneticAlgorithmRunner:
             self.graph_stats_per_generations()
 
     def graph_stats_per_generations(self):
+        """
+        A rather long method for drawing the graph of the best and mean scores per generation.
+        """
         if len(self.best_score_per_generation) < 2:
             return
         graph_canvas = np.ones((GRAPH_SIZE,GRAPH_SIZE,3), dtype=float)
@@ -262,6 +305,10 @@ class GeneticAlgorithmRunner:
         cv2.imshow("Graph",graph_canvas)
 
     def kill_all_feeders(self):
+        """
+
+        :return:
+        """
         for bug in self.feeder_list:
             bug.die()
 
