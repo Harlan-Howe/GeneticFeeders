@@ -11,7 +11,7 @@ from FeederFile import Feeder, FEEDER_RADIUS
 from FoodFile import Food, FOOD_RADIUS
 
 DISPLAY_SENSORS = False
-GRAPHIC_SIMULATION = True
+GRAPHIC_SIMULATION = False
 DISPLAY_GRAPH = True
 
 MAX_CYCLE_DURATION = 60
@@ -20,6 +20,7 @@ DANGER_THRESHOLD_SQUARED = math.pow(DANGERBALL_RADIUS + FEEDER_RADIUS, 2)
 NUM_FEEDERS = 81
 
 GRAPH_SIZE = 400
+GRAPH_MARGIN = 20
 
 class GeneticAlgorithmRunner:
 
@@ -192,29 +193,29 @@ class GeneticAlgorithmRunner:
         if len(self.best_score_per_generation) < 2:
             return
         graph_canvas = np.ones((GRAPH_SIZE,GRAPH_SIZE,3), dtype=float)
-        cv2.line(img=graph_canvas, pt1=(15, 15), pt2=(15, GRAPH_SIZE-15), color=(0, 0, 0), thickness=1)
-        cv2.line(img=graph_canvas, pt1=(15, GRAPH_SIZE-15), pt2=(GRAPH_SIZE-15, GRAPH_SIZE-15), color=(0, 0, 0), thickness=1)
+        cv2.line(img=graph_canvas, pt1=(GRAPH_MARGIN, GRAPH_MARGIN), pt2=(GRAPH_MARGIN, GRAPH_SIZE-GRAPH_MARGIN), color=(0, 0, 0), thickness=1)
+        cv2.line(img=graph_canvas, pt1=(GRAPH_MARGIN, GRAPH_SIZE-GRAPH_MARGIN), pt2=(GRAPH_SIZE-GRAPH_MARGIN, GRAPH_SIZE-GRAPH_MARGIN), color=(0, 0, 0), thickness=1)
         best_score_ever = 0
         for score in self.best_score_per_generation:
             if score > best_score_ever:
                 best_score_ever = score
         cv2.putText(img=graph_canvas, text="score", org=(5, 10), fontFace=cv2.FONT_HERSHEY_PLAIN,
                     fontScale=1, color=(0,0,0))
-        cv2.putText(img=graph_canvas, text=f"{best_score_ever:3.1f}", org=(20, 23), fontFace=cv2.FONT_HERSHEY_PLAIN,
+        cv2.putText(img=graph_canvas, text=f"{best_score_ever:3.1f}", org=(GRAPH_MARGIN+5, GRAPH_MARGIN+8), fontFace=cv2.FONT_HERSHEY_PLAIN,
                     fontScale=1, color=(0,0,0))
-        cv2.putText(img=graph_canvas, text=f"gen: {len(self.best_score_per_generation)-1}", org=(GRAPH_SIZE-80, GRAPH_SIZE-30),
+        cv2.putText(img=graph_canvas, text=f"gen: {len(self.best_score_per_generation)-1}", org=(GRAPH_SIZE-GRAPH_MARGIN-65, GRAPH_SIZE-GRAPH_MARGIN-14),
                     fontFace=cv2.FONT_HERSHEY_PLAIN,
                     fontScale=1, color=(0, 0, 0))
 
-        vertical_scale = (GRAPH_SIZE-15-15)/best_score_ever
-        horizontal_scale = (GRAPH_SIZE-15-15)/(len(self.best_score_per_generation)-1)
+        vertical_scale = (GRAPH_SIZE-GRAPH_MARGIN-GRAPH_MARGIN)/best_score_ever
+        horizontal_scale = (GRAPH_SIZE-GRAPH_MARGIN-GRAPH_MARGIN)/(len(self.best_score_per_generation)-1)
 
         horizontal_line_spacing = 10**(math.floor(math.log10(best_score_ever)))
         j = 1
         while j*horizontal_line_spacing < best_score_ever:
             cv2.line(img=graph_canvas,
-                     pt1=(15, int(GRAPH_SIZE - 15 - j * horizontal_line_spacing * vertical_scale)),
-                     pt2=(GRAPH_SIZE - 15, int(GRAPH_SIZE - 15 - j * horizontal_line_spacing * vertical_scale)),
+                     pt1=(GRAPH_MARGIN, int(GRAPH_SIZE - GRAPH_MARGIN - j * horizontal_line_spacing * vertical_scale)),
+                     pt2=(GRAPH_SIZE - GRAPH_MARGIN, int(GRAPH_SIZE - GRAPH_MARGIN - j * horizontal_line_spacing * vertical_scale)),
                      color=(0.75, 0.75, 0.75),
                      thickness=1
                      )
@@ -224,8 +225,8 @@ class GeneticAlgorithmRunner:
         j = 1
         while j * vertical_line_spacing < len(self.best_score_per_generation):
             cv2.line(img=graph_canvas,
-                     pt1=(int(15 + j*vertical_line_spacing * horizontal_scale), 15),
-                     pt2=(int(15 + j*vertical_line_spacing * horizontal_scale), GRAPH_SIZE-15),
+                     pt1=(int(GRAPH_MARGIN + j*vertical_line_spacing * horizontal_scale), GRAPH_MARGIN),
+                     pt2=(int(GRAPH_MARGIN + j*vertical_line_spacing * horizontal_scale), GRAPH_SIZE-GRAPH_MARGIN),
                      color=(0.75, 0.75, 0.75),
                      thickness=1
                      )
@@ -233,30 +234,30 @@ class GeneticAlgorithmRunner:
 
         for i in range(len(self.best_score_per_generation)-1):
             cv2.line(img=graph_canvas,
-                     pt1=(int(15 + horizontal_scale*i), int(GRAPH_SIZE-15-vertical_scale*self.best_score_per_generation[i])),
-                     pt2=(int(15 + horizontal_scale*(i+1)), int(GRAPH_SIZE-15-vertical_scale*self.best_score_per_generation[i+1])),
+                     pt1=(int(GRAPH_MARGIN + horizontal_scale*i), int(GRAPH_SIZE-GRAPH_MARGIN-vertical_scale*self.best_score_per_generation[i])),
+                     pt2=(int(GRAPH_MARGIN + horizontal_scale*(i+1)), int(GRAPH_SIZE-GRAPH_MARGIN-vertical_scale*self.best_score_per_generation[i+1])),
                      color=(1, 0, 0), thickness=1)
 
             if horizontal_scale > 6:
-                cv2.circle(img=graph_canvas, center= (int(15 + horizontal_scale*i), int(GRAPH_SIZE-15-vertical_scale*self.best_score_per_generation[i])),
+                cv2.circle(img=graph_canvas, center= (int(GRAPH_MARGIN + horizontal_scale*i), int(GRAPH_SIZE-GRAPH_MARGIN-vertical_scale*self.best_score_per_generation[i])),
                            radius = 3, color=(1, 0, 0), thickness=-1)
             cv2.line(img=graph_canvas,
-                     pt1=(int(15 + horizontal_scale * i),
-                          int(GRAPH_SIZE - 15 - vertical_scale * self.mean_score_per_generation[i])),
-                     pt2=(int(15 + horizontal_scale * (i + 1)),
-                          int(GRAPH_SIZE - 15 - vertical_scale * self.mean_score_per_generation[i + 1])),
+                     pt1=(int(GRAPH_MARGIN + horizontal_scale * i),
+                          int(GRAPH_SIZE - GRAPH_MARGIN - vertical_scale * self.mean_score_per_generation[i])),
+                     pt2=(int(GRAPH_MARGIN + horizontal_scale * (i + 1)),
+                          int(GRAPH_SIZE - GRAPH_MARGIN - vertical_scale * self.mean_score_per_generation[i + 1])),
                      color=(0, 0, 1), thickness=1)
             if horizontal_scale > 6:
-                cv2.circle(img=graph_canvas, center= (int(15 + horizontal_scale*i), int(GRAPH_SIZE-15-vertical_scale*self.mean_score_per_generation[i])),
+                cv2.circle(img=graph_canvas, center= (int(GRAPH_MARGIN + horizontal_scale*i), int(GRAPH_SIZE-GRAPH_MARGIN-vertical_scale*self.mean_score_per_generation[i])),
                            radius = 3, color=(0, 0, 1), thickness=-1)
 
         if horizontal_scale > 6:
             cv2.circle(img=graph_canvas,
-                       center=(int(15 + horizontal_scale * (i + 1)), int(GRAPH_SIZE - 15 - vertical_scale * self.best_score_per_generation[-1])),
+                       center=(int(GRAPH_MARGIN + horizontal_scale * (i + 1)), int(GRAPH_SIZE - GRAPH_MARGIN - vertical_scale * self.best_score_per_generation[-1])),
                        radius=3, color=(1, 0, 0), thickness=-1)
             cv2.circle(img=graph_canvas,
-                       center=(int(15 + horizontal_scale * (i + 1)), int(
-                           GRAPH_SIZE- 15 - vertical_scale * self.mean_score_per_generation[-1])),
+                       center=(int(GRAPH_MARGIN + horizontal_scale * (i + 1)), int(
+                           GRAPH_SIZE- GRAPH_MARGIN - vertical_scale * self.mean_score_per_generation[-1])),
                        radius=3, color=(0, 0, 1), thickness=-1)
         cv2.imshow("Graph",graph_canvas)
 
