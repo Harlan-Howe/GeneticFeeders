@@ -12,19 +12,19 @@ from FoodFile import Food, FOOD_RADIUS
 
 
 
-DISPLAY_SENSORS = False
-GRAPHIC_SIMULATION = True
-DISPLAY_GRAPH = False
+DISPLAY_SENSORS = False  # whether to show the radial sensor lines from the feeders
+GRAPHIC_SIMULATION = True  # whether to show the simulation, or do a 10x faster simulation without the animation.
+DISPLAY_GRAPH = False  # whether to show a graph of the best and average scores per generation, starting after gen 1
 
-MAX_CYCLE_DURATION = 60
+MAX_CYCLE_DURATION = 60  # the number of seconds before we give up on this generation and kill any feeders left
 FOOD_THRESHOLD_SQUARED = math.pow(FOOD_RADIUS + FEEDER_RADIUS, 2)
 DANGER_THRESHOLD_SQUARED = math.pow(DANGERBALL_RADIUS + FEEDER_RADIUS, 2)
 NUM_FEEDERS = 81
 NUM_MOVING_DANGERS = 30
 NUM_FOOD = 200
 
-GRAPH_SIZE = 400
-GRAPH_MARGIN = 20
+GRAPH_SIZE = 400  # size of the graph window
+GRAPH_MARGIN = 20  # number of pixels on all sides of the graph in the graph window.
 
 class GeneticAlgorithmRunner:
 
