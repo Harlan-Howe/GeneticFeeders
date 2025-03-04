@@ -198,7 +198,7 @@ class GeneticAlgorithmRunner:
         self.calculate_stats_for_generation()
 
         if self.should_save_this_generation:
-            self.save_generation(f"{self.save_filename}-{self.generation_number}")
+            self.save_generation(f"{self.save_filename}-{self.generation_number}.dat")
         self.cycle_ongoing = True
         self.update_stats_window()
         cv2.waitKey(10)
@@ -306,18 +306,24 @@ class GeneticAlgorithmRunner:
 
     def kill_all_feeders(self):
         """
-
-        :return:
+        Time has expired for this generation, so  kill all the feeders (but preserve how much food each had.)
         """
         for bug in self.feeder_list:
             bug.die()
 
     def draw_all_feeders(self, main_canvas):
+        """
+        tell each live feeder to draw itself.
+        :param main_canvas:
+        """
         for bug in self.feeder_list:
             if bug.is_alive:
                 bug.draw_self(canvas=main_canvas, display_sensors=DISPLAY_SENSORS)
 
     def count_live_feeders(self):
+        """
+        count how many feeders are still alive. If this number has dropped to zero, set self.cycle_ongoing to False.
+        """
         self.live_feeders = 0
         for bug in self.feeder_list:
             if bug.is_alive:
@@ -326,6 +332,10 @@ class GeneticAlgorithmRunner:
             self.cycle_ongoing = False
 
     def update_stats_window(self):
+        """
+        draw the graphical representation of the feeders' genes, along with their age and cause of death, if any.
+        Display the window.
+        """
         if self.cycle_ongoing:
             self.feeder_list.sort(reverse=True)
             stats_canvas = np.ones((750, 600, 3), dtype=float)
@@ -333,10 +343,18 @@ class GeneticAlgorithmRunner:
             cv2.imshow("stats", stats_canvas)
 
     def draw_all_food(self, main_canvas):
+        """
+        draw all the food dots on the canvas.
+        :param main_canvas:
+        """
         for f in self.food_list:
             f.draw_self(canvas=main_canvas)
 
     def check_for_feeder_danger_collisions(self):
+        """
+        determines whether any living feeders have collided with a danger, moving or non-moving. If so, the feeder should
+        die.
+        """
         for db in self.all_dangers:
             for bug in self.feeder_list:
                 if bug.is_alive:
@@ -347,6 +365,10 @@ class GeneticAlgorithmRunner:
                         bug.death_reason = "O"
 
     def check_for_eaten_food(self):
+        """
+        for each food item, checks whether any feeder(s) is/are touching it. If so, increase the food_level of the
+        feeder(s). Respawn the food at a new, random location.
+        """
         eaten_food_list: Set[Food] = set()
         for f in self.food_list:
             for bug in self.feeder_list:
@@ -360,34 +382,56 @@ class GeneticAlgorithmRunner:
             self.food_list.append(Food())
 
     def move_all_feeders(self, delta_t):
+        """
+        perform one animation step for each live feeder.
+        :param delta_t: the number of seconds since the last animation step.
+        """
         for bug in self.feeder_list:
             if bug.is_alive:
                 bug.animation_step(delta_t)
 
     def detect_all_food(self):
+        """
+        tell each feeder to update its sensors about all food in its range.
+        """
         for f in self.food_list:
             for bug in self.feeder_list:
                 if bug.is_alive:
                     bug.detect(f.pos, False)
 
     def detect_all_dangers(self):
+        """
+        tell each feeder to update its sensors about all dangers in its range.
+        """
         for db in self.all_dangers:
             for bug in self.feeder_list:
                 if bug.is_alive:
                     bug.detect(db.pos, True)
 
     def move_and_draw_dangers(self, delta_t, main_canvas):
+        """
+        animation step for all mobile dangers
+        :param delta_t: the number of seconds since the last animation step
+        :param main_canvas: the screen on which to draw them.
+        """
         for db in self.moving_danger_list:
             db.animate_step(delta_t)
             if GRAPHIC_SIMULATION:
                 db.draw_self(main_canvas)
 
     def clear_all_live_feeder_sensors(self):
+        """
+        refresh all the sensors for all the live feeders, in preparation to receive information about the world for
+        this animation step.
+        """
         for bug in self.feeder_list:
             if bug.is_alive:
                 bug.clear_sensors()
 
     def initial_setup(self):
+        """
+        ask the user whether to load a data file of genes for a given generation.
+        """
         load_YN = input("Do you want to load an existing generation? (Y/N) ").lower()
         if load_YN == 'y':
             load_filename = input("Enter the name of the file, or type 'cancel' to change your mind. ")
@@ -400,6 +444,10 @@ class GeneticAlgorithmRunner:
               "Press 'q' to quit.")
 
     def save_generation(self, filename):
+        """
+        save information about the generation that just finished to a file, so that it can be loaded later.
+        :param filename:
+        """
         text_to_write = f"{self.program_run_number}\n{self.generation_number}\n"
         for bug in self.feeder_list:
             text_to_write += bug.name
@@ -414,6 +462,11 @@ class GeneticAlgorithmRunner:
             print(f"An error occurred: {e}")
 
     def load_generation(self, filename):
+        """
+        read generation data from a file and set up the collection of feeders from this information, along with
+        the "run number" and generation number to match the file.
+        :param filename:
+        """
         all_weights: List[List[float]] = []
         try:
             with open(filename, "r") as file:
