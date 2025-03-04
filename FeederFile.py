@@ -18,11 +18,20 @@ CONSUMPTION_PER_SECOND = 4
 
 VOWELS = ["a","e","i","o","u","y"]
 CONSONANTS = ["b","c","d","f","g","h","j","k","l","m","n","p","q","r","s","t","v","w","x","z"]
+"""================================================================================================================
+    Three methods for creating and altering names. Names in this program are of the format:
+    consonant, vowel, consonant, vowel, consonant, vowel, consonant.
+"""
 
 
-def pick_name():
+def pick_name() -> str:
+    """
+    generates a random name
+    :return: the name selected
+    """
     return (f"{random.choice(CONSONANTS).upper()}{random.choice(VOWELS)}{random.choice(CONSONANTS)}"
             f"{random.choice(VOWELS)}{random.choice(CONSONANTS)}{random.choice(VOWELS)}{random.choice(CONSONANTS)}")
+
 
 def mutate_name(name:str) -> str:
     """
@@ -48,6 +57,7 @@ def mutate_name(name:str) -> str:
 
     return new_name
 
+
 def baby_name(name1:str, name2:str) -> str:
     """
     picks a new name, randomly composed of the letters in the parents' names
@@ -63,43 +73,47 @@ def baby_name(name1:str, name2:str) -> str:
             baby_name += name2[i]
     return baby_name
 
-
+"""
+==================================================================================================== FEEDER CLASS
+"""
 class Feeder:
 
     def __init__(self, genes: Optional[List[float]] = None):
         self.position: List[float] = [random.randint(0, 800), random.randint(0, 800)]
         self.orientation = random.random()*2*math.pi-math.pi
         self.speed = 15.0
-        self.turn_ratio = 0.0
-        self.food_sensors = [0.0 for i in range(NUM_SENSORS)]
-        self.danger_sensors = [0.0 for i in range(NUM_SENSORS)]
+        self.turn_ratio = 0.0  # a.k.a. angular velocity
+
+        self.food_sensors = [0.0 for i in range(NUM_SENSORS)]   # detection levels of food and danger in various angles,
+        self.danger_sensors = [0.0 for i in range(NUM_SENSORS)]  # ranging from -π to +π, relative to the orientation.
 
         self.color: Tuple[float, float, float] = (random.random() * 0.8, random.random() * 0.8 , random.random() * 0.8)
+
+        # randomize genes or load them from "genes"
         if genes is None:
             self.genes = tuple([2*random.random()-1 for i in range(4*NUM_SENSORS)])
         else:
             self.genes = tuple(genes)
+
         self.is_alive = True
         self.food_level = 50
         self.age = 0.0
         self.death_reason = ""
         self.name = pick_name()
 
-    def reset(self):
-        self.is_alive = True
-        self.food_level = 50
-        self.age = 0.0
-        self.position: List[float] = [random.randint(0, 800), random.randint(0, 800)]
-        self.orientation = random.random() * 2 * math.pi - math.pi
-        self.speed = 15.0
-        self.turn_ratio = 0.0
-        self.death_reason = ""
 
     def die(self, reason=""):
+        """
+        deactivate this feeder for the rest of this generation.
+        :param reason: a short string (1 character?) explaining why this feeder died; e.g., "O" touched danger, "E" empty food.
+        """
         self.is_alive = False
         self.death_reason = reason
 
     def rejuvenate(self):
+        """
+        reactivate this feeder for the next generation.
+        """
         self.is_alive = True
         self.position = [random.randint(0, 800), random.randint(0, 800)]
         self.orientation = random.random() * 2 * math.pi - math.pi
@@ -110,6 +124,11 @@ class Feeder:
         self.age = 0.0
 
     def draw_self(self, canvas: np.ndarray, display_sensors=False):
+        """
+        draw this feeder in the simulation window.
+        :param canvas: the window in which to draw
+        :param display_sensors: whether to draw the lines representing when this feeder is sensing something.
+        """
         if display_sensors:
             for i in range(NUM_SENSORS):
                 angle = (i * math.pi * 2 / NUM_SENSORS + self.orientation) % (2*math.pi) - math.pi
@@ -146,11 +165,20 @@ class Feeder:
         cv2.line(img=canvas, pt1=(int(self.position[0]-20),int(self.position[1]-14)),
                  pt2=(int(self.position[0]-20+0.3*self.food_level),int(self.position[1]-14)),
                  color=health_color, thickness = 2)
+
     def clear_sensors(self):
+        """
+        reset the values of the sensors to zero, in preparation to start sensing again for this animation step.
+        """
         self.food_sensors = [0.0 for _ in range(NUM_SENSORS)]
         self.danger_sensors = [0.0 for _ in range(NUM_SENSORS)]
 
     def detect(self, loc: Tuple[float, float] | List[float], isDanger=False):
+        """
+        update the sensors for this feeder, based on a piece of food or a danger at the given location.
+        :param loc: the location of the food or danger
+        :param isDanger: whether this is a danger object or a food object.
+        """
         threshold = FOOD_SENSOR_RADIUS
         threshold_squared = FOOD_SENSOR_RADIUS_SQUARED
         if isDanger:
@@ -172,40 +200,69 @@ class Feeder:
             self.food_sensors[index] = max(self.food_sensors[index],proximity)
         # print(f"{self.danger_sensors=}\t{self.food_sensors=}")
 
-    def animation_step(self, delta_t:float):
-        # self.speed = 0
-        # self.turn_ratio = 0
+    def animation_step(self, delta_t: float):
+        """
+        simulate one step of the feeder's life.
+        :param delta_t: the time since the previous animation step
+        """
         self.food_level -= CONSUMPTION_PER_SECOND*delta_t
         if self.food_level < 0:
             self.die()
             self.death_reason = "E"
             return
-        self.age += delta_t
-        for i in range(NUM_SENSORS):
-            self.speed += (self.genes[i] * self.food_sensors[i] +
-                           self.genes[i+NUM_SENSORS] * self.danger_sensors[i])
-            self.turn_ratio += (self.genes[i+NUM_SENSORS*2] * self.food_sensors[i] +
-                                self.genes[i+NUM_SENSORS*3] * self.danger_sensors[i])
-        self.speed = min(MAX_SPEED, max(-MAX_SPEED, self.speed))
-        self.turn_ratio = min(MAX_TURN_RATIO, max(-MAX_TURN_RATIO, self.turn_ratio))
 
+        self.age += delta_t
+
+        self.update_feeder_motion_from_sensors()
+
+        #  note: moves in the direction halfway between previous orientation and new orientation.
         self.orientation += self.turn_ratio*delta_t/2
         self.position = [self.position[0]+self.speed * delta_t * math.cos(self.orientation),
                          self.position[1]+self.speed * delta_t * math.sin(self.orientation)]
         self.orientation += self.turn_ratio * delta_t / 2
 
-        # print(f"{self.speed=}\t{self.turn_ratio=}")
 
-    def __lt__(self, other):
+    def update_feeder_motion_from_sensors(self):
+        """
+        translates the values of the sensors to commands for the speed and turn ratio, based on the genes for this
+        feeder. This is where the genes of the feeder have their effect; each one is multiplied by the corresponding
+        sensor, and the totals are sent to the speed and turn_direction controls, both of which are capped.
+        """
+        for i in range(NUM_SENSORS):
+            self.speed += (self.genes[i] * self.food_sensors[i] +
+                           self.genes[i + NUM_SENSORS] * self.danger_sensors[i])
+            self.turn_ratio += (self.genes[i + NUM_SENSORS * 2] * self.food_sensors[i] +
+                                self.genes[i + NUM_SENSORS * 3] * self.danger_sensors[i])
+        self.speed = min(MAX_SPEED, max(-MAX_SPEED, self.speed))
+        self.turn_ratio = min(MAX_TURN_RATIO, max(-MAX_TURN_RATIO, self.turn_ratio))
+
+    def __lt__(self, other: "Feeder") -> bool:
+        """
+        overrides the "<" operator, so that a list of feeders can be sorted.
+        :param other: the feeder to compare to.
+        :return: whether this feeder has a lower score than the other feeder.
+        """
         if self.age == other.age:
             return self.food_level < other.food_level
         return self.age < other.age
 
-    def __eq__(self, other):
-
+    def __eq__(self, other: "Feeder") -> bool:
+        """
+        overrides the "==" operator, so that a list of feeders can be sorted.
+        :param other: the feeder to compare this one to
+        :return: whether these two feeders have equivalent scores
+        """
         return self.age == other.age and self.food_level == other.food_level
 
-    def display_attributes_at(self, canvas:np.ndarray, center:Tuple[int,int]|List[int], scale:float = 1.0):
+    def display_attributes_at(self, canvas: np.ndarray, center: Tuple[int, int] | List[int], scale: float = 1.0):
+        """
+        draws a graphical representation of the genes for this feeder at the given location, as well as the name,
+        and potentially the age and death reason if this feeder has died.
+        :param canvas: the canvas to draw into, typically the stats window
+        :param center: the location to draw this shape
+        :param scale: a multiplier to the size of the shape we are drawing.
+        :return:
+        """
         angle_per_sensor = 360/NUM_SENSORS;
         for i in range(NUM_SENSORS):
             color_food_speed = (0, max(0, self.genes[i]), max(0, -self.genes[i]))
@@ -303,7 +360,9 @@ class Feeder:
 
     def get_mutated_version_of_Feeder(self) -> "Feeder":
         """
-        creates a new Feeder with a genetic code that may be slightly different from self's. I.e., there is some random
+        "Yeah, there's a hole in the ozone layer above my head. So what?"
+
+        Creates a new Feeder with a genetic code that may be slightly different from self's. I.e., there is some random
         chance that some random genes are changed by some random amount.
 
         :return: a new Feeder, a mutated version of self.
